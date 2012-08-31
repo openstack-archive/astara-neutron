@@ -2,8 +2,13 @@ from quantum.api.v2 import attributes
 from quantum.db import models_v2
 from quantum.extensions import extensions
 
+<<<<<<< HEAD:akanda/userapi/addressbook.py
+from quantum.extensions import _authzbase
+from quantum.db import models
+=======
 from akanda.quantum import _authzbase
 from akanda.quantum.db import models
+>>>>>>> f6bb366f5963fc1d0a6b137961ef74ea088e98d2:userapi_extensions/akanda/quantum/addressbook.py
 
 
 # XXX: I used Network as an existing model for testing.  Need to change to
@@ -18,7 +23,7 @@ class AddressBookResource(_authzbase.ResourceDelegate):
     """
     model = models.AddressBook
     resource_name = 'addressbook'
-    collection_name = 'addressbookgroup'
+    collection_name = 'addressbookgroups'
 
     ATTRIBUTE_MAP = {
         'id': {'allow_post': False, 'allow_put': False,
@@ -43,20 +48,20 @@ class AddressBookResource(_authzbase.ResourceDelegate):
         return res
 
 
-_authzbase.register_quota('portforward', 'quota_portforward')
+_authzbase.register_quota('addressbook', 'quota_addressbook')
 
 
-class Portforward(object):
+class AddressBook(object):
     """
     """
     def get_name(self):
-        return "port forward"
+        return "addressbook"
 
     def get_alias(self):
-        return "dhportforward"
+        return "dhaddressbook"
 
     def get_description(self):
-        return "A port forwarding extension"
+        return "An addressbook extension"
 
     def get_namespace(self):
         return 'http://docs.dreamcompute.com/api/ext/v1.0'
@@ -66,9 +71,9 @@ class Portforward(object):
 
     def get_resources(self):
         return [extensions.ResourceExtension(
-            'dhportforward',
-            _authzbase.create_extension(PortforwardResource()))]
-            #_authzbase.ResourceController(PortforwardResource()))]
+            'dhaddressbook',
+            _authzbase.create_extension(AddressBookResource()))]
+            #_authzbase.ResourceController(AddressBookResource()))]
 
     def get_actions(self):
         return []
