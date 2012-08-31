@@ -47,7 +47,7 @@ class PortForward(model_base.BASEV2, models.HasId, models.HasTenant):
     # XXX can we add a docsting to this model that explains how fixed_id is
     # used?
     fixed_id = sa.Column(
-        sa.String(36), sa.ForeignKey('ipallocation.id', ondelete="CASCADE"),
+        sa.String(36), sa.ForeignKey('ipallocations.id', ondelete="CASCADE"),
         nullable=True)
     op_status = Column(String(16))
 
