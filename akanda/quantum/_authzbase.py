@@ -3,7 +3,7 @@ import abc
 from sqlalchemy.orm import exc as sa_exc
 
 from quantum import quota
-#from quantum.api.v2 import attributes
+from quantum.api.v2 import attributes
 from quantum.api.v2 import base
 from quantum.api.v2 import resource as api_resource
 from quantum.common import exceptions as q_exc
@@ -153,7 +153,7 @@ class ResourceDelegateInterface(object):
 
 class ResourceDelegate(ResourceDelegateInterface):
     """
-    This class partially implemnts the ResourceDelegateInterface, providing
+    This class partially implements the ResourceDelegateInterface, providing
     common code for use by child classes that inherit from it.
     """
     def create(self, tenant_id, body):
