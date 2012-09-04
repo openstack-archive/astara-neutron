@@ -7,7 +7,6 @@ from quantum.db import models
 =======
 from akanda.quantum import _authzbase
 from akanda.quantum.db import models
->>>>>>> f6bb366f5963fc1d0a6b137961ef74ea088e98d2:userapi_extensions/akanda/quantum/portforward.py
 
 
 # XXX: I used Network as an existing model for testing.  Need to change to
