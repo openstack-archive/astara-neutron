@@ -54,32 +54,32 @@ class PortForward(model_base.BASEV2, models.HasId, models.HasTenant):
 
 class AddressBookEntry(model_base.BASEV2, models.HasId, models.HasTenant):
 
-   # __tablename__ = 'addressbookentries'
+    __tablename__ = 'addressbookentries'
 
-    # group_id = sa.Column(sa.String(36), sa.ForeignKey('addressbookgroup.id'),
-    #     nullable=False)
-    # cidr = sa.Column(sa.String(64), nullable=False)
-    pass
+    group_id = sa.Column(sa.String(36), sa.ForeignKey('addressbookgroups.id'),
+        nullable=False)
+    cidr = sa.Column(sa.String(64), nullable=False)
+    #pass
 
 
 class AddressBookGroup(model_base.BASEV2, models.HasId, models.HasTenant):
 
-    # __tablename__ = 'addressbookgroups'
+    __tablename__ = 'addressbookgroups'
 
-    # name = sa.Column(sa.String(255), nullable=False, primary_key=True)
-    # table_id = sa.Column(sa.String(36), sa.ForeignKey('addressbook.id'),
-    #     nullable=False)
-    # entries = orm.relationship(AddressBookEntry, backref='groups')
-    pass
+    name = sa.Column(sa.String(255), nullable=False, primary_key=True)
+    table_id = sa.Column(sa.String(36), sa.ForeignKey('addressbooks.id'),
+        nullable=False)
+    entries = orm.relationship(AddressBookEntry, backref='groups')
+    #pass
 
 
 class AddressBook(model_base.BASEV2, models.HasId, models.HasTenant):
 
-    # __tablename__ = 'addressbooks'
+    __tablename__ = 'addressbooks'
 
-    # name = sa.Column(sa.String(255), nullable=False, primary_key=True)
-    # groups = orm.relationship(AddressBookGroup, backref='book')
-    pass
+    name = sa.Column(sa.String(255), nullable=False, primary_key=True)
+    groups = orm.relationship(AddressBookGroup, backref='book')
+    #pass
 
 
 class FilterRule(model_base.BASEV2, models.HasId, models.HasTenant):
