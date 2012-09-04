@@ -13,12 +13,12 @@ from quantum.db import models
 # can be updated to use it.
 
 
-class FirewallResource(_authzbase.ResourceDelegate):
+class FilterRuleResource(_authzbase.ResourceDelegate):
     """
     """
-    model = models.Firewall
-    resource_name = 'firewall'
-    collection_name = 'firewalls'
+    model = models.FilterRule
+    resource_name = 'filterrule'
+    collection_name = 'filterrules'
 
     ATTRIBUTE_MAP = {
         'id': {'allow_post': False, 'allow_put': False,
@@ -31,35 +31,35 @@ class FirewallResource(_authzbase.ResourceDelegate):
                       'is_visible': True},
     }
 
-    def make_dict(self, firewall):
+    def make_dict(self, filterrule):
         """
-        Convert a firewall model object to a dictionary.
+        Convert a filterrule model object to a dictionary.
         """
-        res = {'id': firewall['id'],
-               'action': firewall['action'],
-               'protocol': firewall['protocol'],
-               'source_alias': firewall['source_alias'],
-               'source_port': firewall['source_port'],
-               'destination_alias': firewall['destination_alias'],
-               'destination_port': firewall['destination_port'],
-               'created_at': firewall['created_at']}
+        res = {'id': filterrule['id'],
+               'action': filterrule['action'],
+               'protocol': filterrule['protocol'],
+               'source_alias': filterrule['source_alias'],
+               'source_port': filterrule['source_port'],
+               'destination_alias': filterrule['destination_alias'],
+               'destination_port': filterrule['destination_port'],
+               'created_at': filterrule['created_at']}
         return res
 
 
-_authzbase.register_quota('portforward', 'quota_portforward')
+_authzbase.register_quota('filterrule', 'quota_filterrule')
 
 
-class Portforward(object):
+class FilterRule(object):
     """
     """
     def get_name(self):
-        return "port forward"
+        return "filter rule"
 
     def get_alias(self):
-        return "dhportforward"
+        return "dhfilterrule"
 
     def get_description(self):
-        return "A port forwarding extension"
+        return "A filter rule extension"
 
     def get_namespace(self):
         return 'http://docs.dreamcompute.com/api/ext/v1.0'
@@ -69,9 +69,9 @@ class Portforward(object):
 
     def get_resources(self):
         return [extensions.ResourceExtension(
-            'dhportforward',
-            _authzbase.create_extension(PortforwardResource()))]
-            #_authzbase.ResourceController(PortforwardResource()))]
+            'dhfilterrule',
+            _authzbase.create_extension(filterruleResource()))]
+            #_authzbase.ResourceController(FilterRuleResource()))]
 
     def get_actions(self):
         return []
