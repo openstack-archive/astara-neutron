@@ -90,7 +90,7 @@ Quantum Extensions install:
 
     quota_driver = quantum.extensions._quotav2_driver.DbQuotaDriver
 
-10. Run ./stack.sh again to generate the required DB migrations and start services
+10. Run ./stack.sh again to generate the required DB migrations and start services.
 
 11. You should see:
 
@@ -105,7 +105,7 @@ plugin <quantum.plugins.openvswitch.ovs_quantum_plugin.OVSQuantumPluginV2 object
 
 To manually start and stop Quantum Services under DevStack:
 
-1. Run 'screen -x'
+1. Run 'screen -x'. To show a list of screens, use Ctrl+A+"
 2. Select q-svc. In most cases - Ctrl+A+1 should work.
 3. Run the following to start Quantum or Ctrl+C to stop:
 

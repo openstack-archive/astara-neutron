@@ -1,10 +1,8 @@
 from quantum.api.v2 import attributes
 from quantum.extensions import extensions
 
-<<<<<<< HEAD:akanda/userapi/portforward.py
 from quantum.extensions import _authzbase
 from quantum.db import models
-=======
 from akanda.quantum import _authzbase
 from akanda.quantum.db import models
 
