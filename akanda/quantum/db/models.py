@@ -84,19 +84,18 @@ class AddressBook(model_base.BASEV2, models.HasId, models.HasTenant):
 
 class FilterRule(model_base.BASEV2, models.HasId, models.HasTenant):
 
-    # __tablename__ = 'filterrules'
+    __tablename__ = 'filterrules'
 
-    #  action = sa.Column(sa.String(6), nullable=False, primary_key=True)
-    #  ip_version = sa.Column(sa.Integer, nullable=True)
-    #  protocol = sa.Column(sa.String(4), nullable=False)
-    #  source_alias = sa.Column(sa.String(36),
-    #      sa.ForeignKey('addressbookentry.id'),
-    #      nullable=False)
-    #  source_port = sa.Column(sa.Integer, nullable=True)
-    #  destination_alias = sa.Column(sa.String(36),
-    #      sa.ForeignKey('addressbookentry.id'),
-    #      nullable=False)
-    #  destination_port = sa.Column(sa.Integer, nullable=True)
-    #  created_at = sa.Column(sa.DateTime, default=timeutils.utcnow,
-    #      nullable=False)
-    pass
+    action = sa.Column(sa.String(6), nullable=False, primary_key=True)
+    ip_version = sa.Column(sa.Integer, nullable=True)
+    protocol = sa.Column(sa.String(4), nullable=False)
+    source_alias = sa.Column(sa.String(36),
+         sa.ForeignKey('addressbookentries.id'),
+         nullable=False)
+    source_port = sa.Column(sa.Integer, nullable=True)
+    destination_alias = sa.Column(sa.String(36),
+         sa.ForeignKey('addressbookentries.id'),
+         nullable=False)
+    destination_port = sa.Column(sa.Integer, nullable=True)
+    created_at = sa.Column(sa.DateTime, default=timeutils.utcnow,
+         nullable=False)

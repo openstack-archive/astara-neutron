@@ -13,7 +13,7 @@ from quantum.db import models
 # can be updated to use it.
 
 
-class FilterRuleResource(_authzbase.ResourceDelegate):
+class FilterruleResource(_authzbase.ResourceDelegate):
     """
     """
     model = models.FilterRule
@@ -49,7 +49,7 @@ class FilterRuleResource(_authzbase.ResourceDelegate):
 _authzbase.register_quota('filterrule', 'quota_filterrule')
 
 
-class FilterRule(object):
+class Filterrule(object):
     """
     """
     def get_name(self):
@@ -70,7 +70,7 @@ class FilterRule(object):
     def get_resources(self):
         return [extensions.ResourceExtension(
             'dhfilterrule',
-            _authzbase.create_extension(filterruleResource()))]
+            _authzbase.create_extension(FilterruleResource()))]
             #_authzbase.ResourceController(FilterRuleResource()))]
 
     def get_actions(self):

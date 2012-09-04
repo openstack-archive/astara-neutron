@@ -14,7 +14,7 @@ from quantum.db import models
 # can be updated to use it.
 
 
-class AddressBookResource(_authzbase.ResourceDelegate):
+class AddressbookResource(_authzbase.ResourceDelegate):
     """
     """
     model = models.AddressBook
@@ -46,7 +46,7 @@ class AddressBookResource(_authzbase.ResourceDelegate):
 _authzbase.register_quota('addressbook', 'quota_addressbook')
 
 
-class AddressBook(object):
+class Addressbook(object):
     """
     """
     def get_name(self):
@@ -67,7 +67,7 @@ class AddressBook(object):
     def get_resources(self):
         return [extensions.ResourceExtension(
             'dhaddressbook',
-            _authzbase.create_extension(AddressBookResource()))]
+            _authzbase.create_extension(AddressbookResource()))]
             #_authzbase.ResourceController(AddressBookResource()))]
 
     def get_actions(self):
