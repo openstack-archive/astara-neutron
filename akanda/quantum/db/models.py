@@ -129,7 +129,7 @@ class AddressBookGroup(model_base.BASEV2, models.HasId, models.HasTenant):
 
     @validates('entries')
     def validate_entry(self, key, entries):
-        assert entries.group_id is None
+        assert entries.group_id is not None
         return entries
 
 
