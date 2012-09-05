@@ -29,7 +29,7 @@ from quantum.db import model_base
 from quantum.db import models_v2 as models
 from quantum.openstack.common import timeutils
 
-from datetime import date, datetime
+from datetime import datetime
 
 BASE = model_base.BASE
 
@@ -127,6 +127,11 @@ class AddressBookGroup(model_base.BASEV2, models.HasId, models.HasTenant):
         assert len(table_id) <= 36
         return table_id
 
+    @validates('entries')
+    def validate_entry(self, key, entries):
+        assert entries.group_id is None
+        return entries
+
 
 class AddressBook(model_base.BASEV2, models.HasId, models.HasTenant):
 
@@ -157,12 +162,12 @@ class FilterRule(model_base.BASEV2, models.HasId, models.HasTenant):
     ip_version = sa.Column(sa.Integer, nullable=True)
     protocol = sa.Column(sa.String(4), nullable=False)
     source_alias = sa.Column(sa.String(36),
-         sa.ForeignKey('addressbookentries.id'),
-         nullable=False)
+        sa.ForeignKey('addressbookentries.id'),
+        nullable=False)
     source_port = sa.Column(sa.Integer, nullable=True)
     destination_alias = sa.Column(sa.String(36),
-         sa.ForeignKey('addressbookentries.id'),
-         nullable=False)
+        sa.ForeignKey('addressbookentries.id'),
+        nullable=False)
     destination_port = sa.Column(sa.Integer, nullable=True)
     created_at = sa.Column(sa.DateTime, default=timeutils.utcnow,
          nullable=False)
