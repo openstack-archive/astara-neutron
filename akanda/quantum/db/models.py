@@ -138,7 +138,7 @@ class AddressBookEntry(model_base.BASEV2, models.HasId, models.HasTenant):
 
     @validates('cidr')
     def validate_public_port(self, key, cidr):
-        assert isinstance(cidr, basestring) is str
+        assert netaddr.IPNetwork(cidr)
         assert len(cidr) <= 64
         return cidr
 
