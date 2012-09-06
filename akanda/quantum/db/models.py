@@ -15,6 +15,7 @@
 # under the License.
 # @author: Murali Raju, New Dream Network, LLC (DreamHost)
 # @author: Mark Mcclain, New Dream Network, LLC (DreamHost)
+from datetime import datetime
 import logging
 import netaddr
 import re
@@ -30,7 +31,7 @@ from quantum.db import model_base
 from quantum.db import models_v2 as models
 from quantum.openstack.common import timeutils
 
-from datetime import datetime
+
 
 BASE = model_base.BASE
 LOG = logging.getLogger(__name__)
@@ -130,7 +131,8 @@ class AddressBookEntry(model_base.BASEV2, models.HasId, models.HasTenant):
     #AddressBookEntry Model Validators using sqlalchamey simple validators
     @validates('group_id')
     def validate_name(self, key, group_id):
-        assert isinstance(group_id, basestring) is str
+        retype = type(re.compile(UUID_PATTERN))
+        assert isinstance(re.compile(group_id), retype)
         assert len(group_id) <= 36
         return group_id
 
@@ -159,7 +161,8 @@ class AddressBookGroup(model_base.BASEV2, models.HasId, models.HasTenant):
 
     @validates('table_id')
     def validate_table_id(self, key, table_id):
-        assert isinstance(table_id, basestring) is str
+        retype = type(re.compile(UUID_PATTERN))
+        assert isinstance(re.compile(table_id), retype)
         assert len(table_id) <= 36
         return table_id
 
@@ -223,7 +226,8 @@ class FilterRule(model_base.BASEV2, models.HasId, models.HasTenant):
 
     @validates('source_port')
     def validate_source_port(self, key, source_port):
-        assert isinstance(source_port) is int
+        source_port = int(source_port)
+        assert _validate_port_range(source_port)
         return source_port
 
     @validates('destination_alias')
@@ -234,7 +238,8 @@ class FilterRule(model_base.BASEV2, models.HasId, models.HasTenant):
 
     @validates('destination_port')
     def validate_destination_port(self, key, destination_port):
-        assert isinstance(destination_port, basestring) is str
+        destination_port = int(destination_port)
+        assert _validate_port_range(destination_port)
         assert len(destination_port) <= 36
         return destination_port
 
