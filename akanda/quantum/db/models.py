@@ -21,7 +21,7 @@ import netaddr
 import re
 
 import sqlalchemy as sa
-from sqlalchemy import Column, String, ForeignKey
+from sqlalchemy import Column, String
 from sqlalchemy import orm
 from sqlalchemy.orm import validates
 
@@ -30,7 +30,6 @@ from quantum.api import api_common as common
 from quantum.db import model_base
 from quantum.db import models_v2 as models
 from quantum.openstack.common import timeutils
-
 
 
 BASE = model_base.BASE
@@ -210,17 +209,20 @@ class FilterRule(model_base.BASEV2, models.HasId, models.HasTenant):
     @validates('ip_version')
     def validate_ip_version(self, key, ip_version):
         assert isinstance(ip_version) is int
+        assert isinstance(ip_version, None)
         return ip_version
 
     @validates('protocol')
     def validate_protocol(self, key, protocol):
         assert isinstance(protocol, basestring) is str
+        assert protocol.lower() in ('tcp', 'udp', 'icmp')
         assert len(protocol) <= 4
         return protocol
 
     @validates('source_alias')
     def validate_source_alias(self, key, source_alias):
-        assert isinstance(source_alias, basestring) is str
+        retype = type(re.compile(UUID_PATTERN))
+        assert isinstance(re.compile(source_alias), retype)
         assert len(source_alias) <= 36
         return source_alias
 
@@ -228,11 +230,13 @@ class FilterRule(model_base.BASEV2, models.HasId, models.HasTenant):
     def validate_source_port(self, key, source_port):
         source_port = int(source_port)
         assert _validate_port_range(source_port)
+        assert len(source_port) <= 36
         return source_port
 
     @validates('destination_alias')
     def validate_destination_alias(self, key, destination_alias):
-        assert isinstance(destination_alias, basestring) is str
+        retype = type(re.compile(UUID_PATTERN))
+        assert isinstance(re.compile(destination_alias), retype)
         assert len(destination_alias) <= 36
         return destination_alias
 
