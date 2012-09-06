@@ -53,7 +53,7 @@ Preliminary steps:
 
 1. Run ./stack.sh until the stack account and /opt/stack directory gets created.
 2. Hit Ctrl+C
-3. Create a localrc file with the following:
+3. Create a localrc file under the devstack directory with the following:
 
 MYSQL_PASSWORD=openstack
 RABBIT_PASSWORD=openstack
@@ -90,7 +90,7 @@ Quantum Extensions install:
 
     quota_driver = quantum.extensions._quotav2_driver.DbQuotaDriver
 
-10. Run ./stack.sh again to generate the required DB migrations and start services.
+10. Run ./stack.sh again to generate the required DB migrations and start required services.
 
 11. You should see:
 
