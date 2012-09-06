@@ -34,6 +34,23 @@ BASE = model_base.BASE
 
 #DreamHost PortFoward, Firewall(FilterRule), AddressBook models as
 #Quantum extensions
+
+#VALIDATORS
+#Validate private and public port ranges
+def _validate_port_range(port, valid_values=None):
+    min_value = valid_values[0]
+    max_value = valid_values[65536]
+    if port >= min_value and port <= max_value:
+        return
+    else:
+        msg_dict = dict(port=port, min_value=min_value, 
+            max_value=max_value)
+        msg = _("%(port) is not the range between %(min_value)"
+            "and %(max_value)") % msg_dict
+        LOG.debug("validate_port_range: %s", msg)
+        return msg
+
+
 class PortForward(model_base.BASEV2, models.HasId, models.HasTenant):
 
     __tablename__ = 'portfowards'
@@ -52,6 +69,7 @@ class PortForward(model_base.BASEV2, models.HasId, models.HasTenant):
     op_status = Column(String(16))
 
     #PortForward Model Validators using sqlalchamey simple validators
+
     @validates('name')
     def validate_name(self, key, name):
         assert isinstance(name, basestring) is str
@@ -60,7 +78,8 @@ class PortForward(model_base.BASEV2, models.HasId, models.HasTenant):
 
     @validates('public_port')
     def validate_public_port(self, key, public_port):
-        assert isinstance(public_port) is int
+        public_port = int(public_port)
+        assert _validate_port_range(public_port)
         return public_port
 
     @validates('instance_id')
@@ -71,7 +90,8 @@ class PortForward(model_base.BASEV2, models.HasId, models.HasTenant):
 
     @validates('private_port')
     def validate_private_port(self, key, private_port):
-        assert isinstance(private_port) is int
+        private_port = int(private_port)
+        assert _validate_port_range(private_port)
         return private_port
 
     @validates('fixed_id')
