@@ -1,22 +1,20 @@
-# vim: tabstop=4 shiftwidth=4 softtabstop=4
-# Copyright 2011 Nicira Networks, Inc.
-# All Rights Reserved.
+# -*- encoding: utf-8 -*-
 #
-#    Licensed under the Apache License, Version 2.0 (the "License"); you may
-#    not use this file except in compliance with the License. You may obtain
-#    a copy of the License at
+# Copyright © 2012 New Dream Network, LLC (DreamHost)
 #
-#         http://www.apache.org/licenses/LICENSE-2.0
+# Licensed under the Apache License, Version 2.0 (the "License"); you may
+# not use this file except in compliance with the License. You may obtain
+# a copy of the License at
 #
-#    Unless required by applicable law or agreed to in writing, software
-#    distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-#    WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-#    License for the specific language governing permissions and limitations
-#    under the License.
-# @author: Somik Behera, Nicira Networks, Inc.
-# @author: Brad Hall, Nicira Networks, Inc.
-# @author: Dan Wendlandt, Nicira Networks, Inc.
-# @author: Salvatore Orlando, Citrix Systems
+#      http://www.apache.org/licenses/LICENSE-2.0
+#
+# Unless required by applicable law or agreed to in writing, software
+# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
+# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
+# License for the specific language governing permissions and limitations
+# under the License.
+# @author: Murali Raju, New Dream Network, LLC (DreamHost)
+# @author: Mark Mcclain, New Dream Network, LLC (DreamHost)
 
 import sqlalchemy as sa
 from sqlalchemy import Column, String, ForeignKey
@@ -56,31 +54,37 @@ class PortForward(model_base.BASEV2, models.HasId, models.HasTenant):
     #PortForward Model Validators using sqlalchamey simple validators
     @validates('name')
     def validate_name(self, key, name):
-        assert type(name) is str
+        assert isinstance(name, basestring) is str
         assert len(name) <= 255
         return name
 
     @validates('public_port')
     def validate_public_port(self, key, public_port):
-        assert type(public_port) is int
+        assert isinstance(public_port) is int
         return public_port
 
     @validates('instance_id')
     def validate_instance_id(self, key, instance_id):
-        assert type(instance_id) is str
+        assert isinstance(instance_id, basestring) is str
         assert len(instance_id) <= 36
         return instance_id
 
     @validates('private_port')
     def validate_private_port(self, key, private_port):
-        assert type(private_port) is int
+        assert isinstance(private_port) is int
         return private_port
 
     @validates('fixed_id')
     def validate_fixed_id(self, key, fixed_id):
-        assert type(fixed_id) is str
+        assert isinstance(fixed_id, basestring) is str
         assert len(fixed_id) <= 36
         return fixed_id
+
+    @validates('op_status')
+    def validate_op_status(self, key, op_status):
+        assert isinstance(op_status, basestring) is str
+        assert len(op_status) <= 16
+        return op_status
 
 
 class AddressBookEntry(model_base.BASEV2, models.HasId, models.HasTenant):
@@ -94,13 +98,13 @@ class AddressBookEntry(model_base.BASEV2, models.HasId, models.HasTenant):
     #AddressBookEntry Model Validators using sqlalchamey simple validators
     @validates('group_id')
     def validate_name(self, key, group_id):
-        assert type(group_id) is str
+        assert isinstance(group_id, basestring) is str
         assert len(group_id) <= 36
         return group_id
 
     @validates('cidr')
     def validate_public_port(self, key, cidr):
-        assert type(cidr) is str
+        assert isinstance(cidr, basestring) is str
         assert len(cidr) <= 64
         return cidr
 
@@ -117,13 +121,13 @@ class AddressBookGroup(model_base.BASEV2, models.HasId, models.HasTenant):
     #AddressBookGroup Model Validators using sqlalchamey simple validators
     @validates('name')
     def validate_name(self, key, name):
-        assert type(name) is str
+        assert isinstance(name, basestring) is str
         assert len(name) <= 255
         return name
 
     @validates('table_id')
     def validate_public_port(self, key, table_id):
-        assert type(table_id) is str
+        assert isinstance(table_id, basestring) is str
         assert len(table_id) <= 36
         return table_id
 
@@ -143,13 +147,13 @@ class AddressBook(model_base.BASEV2, models.HasId, models.HasTenant):
     #AddressBook Model Validators using sqlalchamey simple validators
     @validates('name')
     def validate_name(self, key, name):
-        assert type(name) is str
+        assert isinstance(name, basestring) is str
         assert len(name) <= 255
         return name
 
     @validates('table_id')
     def validate_public_port(self, key, table_id):
-        assert type(table_id) is str
+        assert isinstance(table_id, basestring) is str
         assert len(table_id) <= 36
         return table_id
 
@@ -175,45 +179,45 @@ class FilterRule(model_base.BASEV2, models.HasId, models.HasTenant):
     #FilterRule Model Validators using sqlalchamey simple validators
     @validates('action')
     def validate_name(self, key, action):
-        assert type(action) is str
+        assert isinstance(action, basestring) is str
         assert len(action) <= 6
         return action
 
     @validates('ip_version')
     def validate_ip_version(self, key, ip_version):
-        assert type(ip_version) is int
+        assert isinstance(ip_version) is int
         return ip_version
 
     @validates('protocol')
     def validate_protocol(self, key, protocol):
-        assert type(protocol) is str
+        assert isinstance(protocol, basestring) is str
         assert len(protocol) <= 4
         return protocol
 
     @validates('source_alias')
     def validate_source_alias(self, key, source_alias):
-        assert type(source_alias) is str
+        assert isinstance(source_alias, basestring) is str
         assert len(source_alias) <= 36
         return source_alias
 
     @validates('source_port')
     def validate_source_port(self, key, source_port):
-        assert type(source_port) is int
+        assert isinstance(source_port) is int
         return source_port
 
     @validates('destination_alias')
     def validate_destination_alias(self, key, destination_alias):
-        assert type(destination_alias) is str
+        assert isinstance(destination_alias, basestring) is str
         assert len(destination_alias) <= 36
         return destination_alias
 
     @validates('destination_port')
     def validate_destination_port(self, key, destination_port):
-        assert type(destination_port) is str
+        assert isinstance(destination_port, basestring) is str
         assert len(destination_port) <= 36
         return destination_port
 
     @validates('created_at')
     def validate_created_at(self, key, created_at):
-        assert type(created_at) is datetime
+        assert isinstance(created_at) is datetime
         return created_at
