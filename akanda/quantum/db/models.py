@@ -54,7 +54,7 @@ def _validate_port_range(port, valid_values=None):
         LOG.debug("validate_port_range: %s", msg)
         return msg
 
-#Used by type regex to check if IDs follow are UUID
+#Used by type() regex to check if IDs are UUID
 HEX_ELEM = '[0-9A-Fa-f]'
 UUID_PATTERN = '-'.join([HEX_ELEM + '{8}', HEX_ELEM + '{4}',
                          HEX_ELEM + '{4}', HEX_ELEM + '{4}',
@@ -158,15 +158,10 @@ class AddressBookGroup(model_base.BASEV2, models.HasId, models.HasTenant):
         return name
 
     @validates('table_id')
-    def validate_public_port(self, key, table_id):
+    def validate_table_id(self, key, table_id):
         assert isinstance(table_id, basestring) is str
         assert len(table_id) <= 36
         return table_id
-
-    @validates('entries')
-    def validate_entry(self, key, entries):
-        assert entries.group_id is not None
-        return entries
 
 
 class AddressBook(model_base.BASEV2, models.HasId, models.HasTenant):
@@ -182,12 +177,6 @@ class AddressBook(model_base.BASEV2, models.HasId, models.HasTenant):
         assert isinstance(name, basestring) is str
         assert len(name) <= 255
         return name
-
-    @validates('table_id')
-    def validate_public_port(self, key, table_id):
-        assert isinstance(table_id, basestring) is str
-        assert len(table_id) <= 36
-        return table_id
 
 
 class FilterRule(model_base.BASEV2, models.HasId, models.HasTenant):
