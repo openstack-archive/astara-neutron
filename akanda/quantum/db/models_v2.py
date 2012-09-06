@@ -1,23 +1,22 @@
-# -*- encoding: utf-8 -*-
+# Copyright (c) 2012 OpenStack, LLC.
 #
-# Copyright © 2012 New Dream Network, LLC (DreamHost)
+# Licensed under the Apache License, Version 2.0 (the "License");
+# you may not use this file except in compliance with the License.
+# You may obtain a copy of the License at
 #
-# Licensed under the Apache License, Version 2.0 (the "License"); you may
-# not use this file except in compliance with the License. You may obtain
-# a copy of the License at
-#
-#      http://www.apache.org/licenses/LICENSE-2.0
+#    http://www.apache.org/licenses/LICENSE-2.0
 #
 # Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS, WITHOUT
-# WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the
-# License for the specific language governing permissions and limitations
-# under the License.
+# distributed under the License is distributed on an "AS IS" BASIS,
+# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or
+# implied.
+# See the License for the specific language governing permissions and
+# limitations under the License.
+#
+# DreamHost Qauntum Extensions
+# Copyright © 2012 New Dream Network, LLC (DreamHost)
 # @author: Murali Raju, New Dream Network, LLC (DreamHost)
 # @author: Mark Mcclain, New Dream Network, LLC (DreamHost)
-
-
-
 
 from datetime import datetime
 import logging
@@ -25,7 +24,7 @@ import netaddr
 import re
 
 import sqlalchemy as sa
-from sqlalchemy import Column, String, ForeignKey
+from sqlalchemy import Column, String
 from sqlalchemy import orm
 from sqlalchemy.orm import validates
 
@@ -37,6 +36,34 @@ from quantum.openstack.common import timeutils
 
 
 LOG = logging.getLogger(__name__)
+
+#DreamHost PortFoward, Firewall(FilterRule), AddressBook models as
+#Quantum extensions
+
+#VALIDATORS
+#Validate private and public port ranges
+'''Consider moving the following to some shared
+attributes class'''
+
+
+def _validate_port_range(port, valid_values=None):
+    min_value = valid_values[0]
+    max_value = valid_values[65536]
+    if port >= min_value and port <= max_value:
+        return
+    else:
+        msg_dict = dict(port=port, min_value=min_value, 
+            max_value=max_value)
+        msg = _("%(port) is not in the range between %(min_value)"
+            "and %(max_value)") % msg_dict
+        LOG.debug("validate_port_range: %s", msg)
+        return msg
+
+#Used by type() regex to check if IDs are UUID
+HEX_ELEM = '[0-9A-Fa-f]'
+UUID_PATTERN = '-'.join([HEX_ELEM + '{8}', HEX_ELEM + '{4}',
+                         HEX_ELEM + '{4}', HEX_ELEM + '{4}',
+                         HEX_ELEM + '{12}'])
 
 
 class HasTenant(object):
@@ -171,32 +198,9 @@ class Network(model_base.BASEV2, HasId, HasTenant):
     admin_state_up = sa.Column(sa.Boolean)
     shared = sa.Column(sa.Boolean)
 
-#DreamHost PortFoward, Firewall(FilterRule), AddressBook models as
-#Quantum extensions
-
-#VALIDATORS
-#Validate private and public port ranges
-def _validate_port_range(port, valid_values=None):
-    min_value = valid_values[0]
-    max_value = valid_values[65536]
-    if port >= min_value and port <= max_value:
-        return
-    else:
-        msg_dict = dict(port=port, min_value=min_value, 
-            max_value=max_value)
-        msg = _("%(port) is not in the range between %(min_value)"
-            "and %(max_value)") % msg_dict
-        LOG.debug("validate_port_range: %s", msg)
-        return msg
-
-#Used by type() regex to check if IDs are UUID
-HEX_ELEM = '[0-9A-Fa-f]'
-UUID_PATTERN = '-'.join([HEX_ELEM + '{8}', HEX_ELEM + '{4}',
-                         HEX_ELEM + '{4}', HEX_ELEM + '{4}',
-                         HEX_ELEM + '{12}'])
-
 
 class PortForward(model_base.BASEV2, HasId, HasTenant):
+    """Represents a PortForward extension"""
 
     name = sa.Column(sa.String(255))
     public_port = sa.Column(sa.Integer, nullable=False)
@@ -254,7 +258,10 @@ class PortForward(model_base.BASEV2, HasId, HasTenant):
 
 
 class AddressBookEntry(model_base.BASEV2, HasId, HasTenant):
+    """Represents as part of an AddressBook extension"""
 
+    '''__tablename__ seems to be needed for plural of models ending
+    with 'y in Quantum DB migrations'''
     __tablename__ = 'addressbookentries'
 
     group_id = sa.Column(sa.String(36), sa.ForeignKey('addressbookgroups.id'),
@@ -277,6 +284,7 @@ class AddressBookEntry(model_base.BASEV2, HasId, HasTenant):
 
 
 class AddressBookGroup(model_base.BASEV2, HasId, HasTenant):
+    """Represents as part of an AddressBook extension"""
 
     name = sa.Column(sa.String(255), nullable=False, primary_key=True)
     table_id = sa.Column(sa.String(36), sa.ForeignKey('addressbooks.id'),
@@ -299,6 +307,7 @@ class AddressBookGroup(model_base.BASEV2, HasId, HasTenant):
 
 
 class AddressBook(model_base.BASEV2, HasId, HasTenant):
+    """Represents as part of an AddressBook extension"""
 
     name = sa.Column(sa.String(255), nullable=False, primary_key=True)
     groups = orm.relationship(AddressBookGroup, backref='book')
@@ -312,6 +321,7 @@ class AddressBook(model_base.BASEV2, HasId, HasTenant):
 
 
 class FilterRule(model_base.BASEV2, HasId, HasTenant):
+    """Represents a FilterRule extension"""
 
     action = sa.Column(sa.String(6), nullable=False, primary_key=True)
     ip_version = sa.Column(sa.Integer, nullable=True)
