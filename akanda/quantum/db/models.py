@@ -15,6 +15,9 @@
 # under the License.
 # @author: Murali Raju, New Dream Network, LLC (DreamHost)
 # @author: Mark Mcclain, New Dream Network, LLC (DreamHost)
+import logging
+import netaddr
+import re
 
 import sqlalchemy as sa
 from sqlalchemy import Column, String, ForeignKey
@@ -30,6 +33,7 @@ from quantum.openstack.common import timeutils
 from datetime import datetime
 
 BASE = model_base.BASE
+LOG = logging.getLogger(__name__)
 
 
 #DreamHost PortFoward, Firewall(FilterRule), AddressBook models as
@@ -45,10 +49,16 @@ def _validate_port_range(port, valid_values=None):
     else:
         msg_dict = dict(port=port, min_value=min_value, 
             max_value=max_value)
-        msg = _("%(port) is not the range between %(min_value)"
+        msg = _("%(port) is not in the range between %(min_value)"
             "and %(max_value)") % msg_dict
         LOG.debug("validate_port_range: %s", msg)
         return msg
+
+#Used by type regex to check if IDs follow are UUID
+HEX_ELEM = '[0-9A-Fa-f]'
+UUID_PATTERN = '-'.join([HEX_ELEM + '{8}', HEX_ELEM + '{4}',
+                         HEX_ELEM + '{4}', HEX_ELEM + '{4}',
+                         HEX_ELEM + '{12}'])
 
 
 class PortForward(model_base.BASEV2, models.HasId, models.HasTenant):
@@ -84,7 +94,8 @@ class PortForward(model_base.BASEV2, models.HasId, models.HasTenant):
 
     @validates('instance_id')
     def validate_instance_id(self, key, instance_id):
-        assert isinstance(instance_id, basestring) is str
+        retype = type(re.compile(UUID_PATTERN))
+        assert isinstance(re.compile(instance_id), retype)
         assert len(instance_id) <= 36
         return instance_id
 
@@ -96,7 +107,8 @@ class PortForward(model_base.BASEV2, models.HasId, models.HasTenant):
 
     @validates('fixed_id')
     def validate_fixed_id(self, key, fixed_id):
-        assert isinstance(fixed_id, basestring) is str
+        retype = type(re.compile(UUID_PATTERN))
+        assert isinstance(re.compile(fixed_id), retype)
         assert len(fixed_id) <= 36
         return fixed_id
 
