@@ -3,7 +3,6 @@ from quantum.db import models_v2
 from quantum.extensions import extensions
 
 from quantum.extensions import _authzbase
-from quantum.db import models
 
 
 # XXX: I used Network as an existing model for testing.  Need to change to
@@ -16,7 +15,7 @@ from quantum.db import models
 class FilterruleResource(_authzbase.ResourceDelegate):
     """
     """
-    model = models.FilterRule
+    model = models_v2.FilterRule
     resource_name = 'filterrule'
     collection_name = 'filterrules'
 

@@ -4,7 +4,6 @@ from quantum.extensions import extensions
 
 
 from quantum.extensions import _authzbase
-from quantum.db import models
 
 
 # XXX: I used Network as an existing model for testing.  Need to change to
@@ -17,7 +16,7 @@ from quantum.db import models
 class AddressbookResource(_authzbase.ResourceDelegate):
     """
     """
-    model = models.AddressBook
+    model = models_v2.AddressBook
     resource_name = 'addressbook'
     collection_name = 'addressbookgroups'
 
