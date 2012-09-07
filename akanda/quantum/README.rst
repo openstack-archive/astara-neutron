@@ -91,6 +91,10 @@ Quantum Extensions install:
 
     quota_driver = quantum.extensions._quotav2_driver.DbQuotaDriver
 
+    Bulk operations:
+
+    allow_bulk=True
+
 10. Run ./stack.sh again to generate the required DB migrations and start required services.
 
 11. You should see:
