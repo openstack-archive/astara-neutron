@@ -6,10 +6,10 @@ Portforward
 
 portfoward.py implemented under quantum/extensions allows... 
 
-Firewall
+Filterrule
 ----------
 
-firewall.py implemented under quantum/extensions allows...
+filterrule.py implemented under quantum/extensions allows...
 
 AddressBook
 ---------
@@ -65,7 +65,8 @@ enable_service q-agt
 enable_service q-dhcp
 enable_service quantum
 LIBVIRT_FIREWALL_DRIVER=nova.virt.firewall.NoopFirewallDriver
-Q_PLUGIN=openvswitch NOVA_USE_QUANTUM_API=v2
+Q_PLUGIN=openvswitch 
+NOVA_USE_QUANTUM_API=v2
 
 
 Quantum Extensions install:
