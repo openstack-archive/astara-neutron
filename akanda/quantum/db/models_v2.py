@@ -14,7 +14,7 @@
 # limitations under the License.
 #
 # DreamHost Qauntum Extensions
-# Copyright © 2012 New Dream Network, LLC (DreamHost)
+# Copyright 2012 New Dream Network, LLC (DreamHost)
 # @author: Murali Raju, New Dream Network, LLC (DreamHost)
 # @author: Mark Mcclain, New Dream Network, LLC (DreamHost)
 
