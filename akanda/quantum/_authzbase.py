@@ -87,7 +87,7 @@ class ResourcePlugin(object):
     def _update_item(self, id, **kwargs):
         key = self.delegate.resource_name
         resource_dict = kwargs[key][key]
-        # XXX context and verbase are not defined here, probably missing in the
+        # XXX context and verbose are not defined here, probably missing in the
         # method signature; please fix
         obj = self._get_by_id(context, id, verbose=verbose)
         return self.delegate.update(obj, resource_dict)
