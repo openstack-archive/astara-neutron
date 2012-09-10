@@ -37,30 +37,13 @@ from quantum.openstack.common import timeutils
 
 LOG = logging.getLogger(__name__)
 
-#DreamHost PortFoward, Firewall(FilterRule), AddressBook models as
-#Quantum extensions
-
-#VALIDATORS
-#Validate private and public port ranges
-'''Consider moving the following to some shared
-attributes class'''
-
 
 class Validator:
 
-    @classmethod
-    def _validate_port_range(port, valid_port_range=None):
-        min_value = valid_port_range[0]
-        max_value = valid_port_range[65536]
-        if port >= min_value and port <= max_value:
-            return
-        else:
-            msg_dict = dict(port=port, min_value=min_value,
-                max_value=max_value)
-            msg = ("%(port) is not in the range between %(min_value)"
-                "and %(max_value)") % msg_dict
-            LOG.debug("validate_port_range: %s", msg)
-            return msg
+    #VALIDATORS
+    #Validate private and public port ranges
+    '''Consider moving the following to some shared
+    attributes class'''
 
     #Used by type() regex to check if IDs are UUID
     HEX_ELEM = '[0-9A-Fa-f]'
@@ -202,6 +185,10 @@ class Network(model_base.BASEV2, HasId, HasTenant):
     shared = sa.Column(sa.Boolean)
 
 
+#DreamHost PortFoward, Firewall(FilterRule), AddressBook models as
+#Quantum extensions
+
+
 class PortForward(model_base.BASEV2, HasId, HasTenant):
     """Represents a PortForward extension"""
 
@@ -227,11 +214,11 @@ class PortForward(model_base.BASEV2, HasId, HasTenant):
         assert len(name) <= 255
         return name
 
-    # @validates('public_port')
-    # def validate_public_port(self, key, public_port):
-    #     #public_port = int(public_port)
-    #     assert Validator._validate_port_range(public_port)
-    #     return public_port
+    @validates('public_port')
+    def validate_public_port(self, key, public_port):
+        public_port = int(public_port)
+        assert public_port >= 0 and public_port <= 65536
+        return public_port
 
     @validates('instance_id')
     def validate_instance_id(self, key, instance_id):
@@ -240,11 +227,11 @@ class PortForward(model_base.BASEV2, HasId, HasTenant):
         assert len(instance_id) <= 36
         return instance_id
 
-    # @validates('private_port')
-    # def validate_private_port(self, key, private_port):
-    #     private_port = int(private_port)
-    #     assert Validator._validate_port_range(private_port)
-    #     return private_port
+    @validates('private_port')
+    def validate_private_port(self, key, private_port):
+        private_port = int(private_port)
+        assert private_port >= 0 and private_port <= 65536
+        return private_port
 
     @validates('fixed_id')
     def validate_fixed_id(self, key, fixed_id):
@@ -370,7 +357,7 @@ class FilterRule(model_base.BASEV2, HasId, HasTenant):
     @validates('source_port')
     def validate_source_port(self, key, source_port):
         source_port = int(source_port)
-        assert Validator._validate_port_range(source_port)
+        assert source_port >= 0 and source_port <= 65536
         assert len(source_port) <= 36
         return source_port
 
@@ -384,7 +371,7 @@ class FilterRule(model_base.BASEV2, HasId, HasTenant):
     @validates('destination_port')
     def validate_destination_port(self, key, destination_port):
         destination_port = int(destination_port)
-        assert Validator._validate_port_range(destination_port)
+        assert destination_port >= 0 and destination_port <= 65536
         assert len(destination_port) <= 36
         return destination_port
 
