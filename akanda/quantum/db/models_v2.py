@@ -49,9 +49,9 @@ attributes class'''
 class Validator:
 
     @classmethod
-    def _validate_port_range(port, valid_values=None):
-        min_value = valid_values[0]
-        max_value = valid_values[65536]
+    def _validate_port_range(port, valid_port_range=None):
+        min_value = valid_port_range[0]
+        max_value = valid_port_range[65536]
         if port >= min_value and port <= max_value:
             return
         else:
@@ -227,11 +227,11 @@ class PortForward(model_base.BASEV2, HasId, HasTenant):
         assert len(name) <= 255
         return name
 
-    @validates('public_port')
-    def validate_public_port(self, key, public_port):
-        #public_port = int(public_port)
-        assert Validator._validate_port_range(public_port)
-        return public_port
+    # @validates('public_port')
+    # def validate_public_port(self, key, public_port):
+    #     #public_port = int(public_port)
+    #     assert Validator._validate_port_range(public_port)
+    #     return public_port
 
     @validates('instance_id')
     def validate_instance_id(self, key, instance_id):
@@ -240,11 +240,11 @@ class PortForward(model_base.BASEV2, HasId, HasTenant):
         assert len(instance_id) <= 36
         return instance_id
 
-    @validates('private_port')
-    def validate_private_port(self, key, private_port):
-        private_port = int(private_port)
-        assert Validator._validate_port_range(private_port)
-        return private_port
+    # @validates('private_port')
+    # def validate_private_port(self, key, private_port):
+    #     private_port = int(private_port)
+    #     assert Validator._validate_port_range(private_port)
+    #     return private_port
 
     @validates('fixed_id')
     def validate_fixed_id(self, key, fixed_id):
