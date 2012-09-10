@@ -84,19 +84,19 @@ class ResourcePlugin(object):
         obj = self._get_by_id(context, id, verbose=verbose)
         return self._fields(self.delegate.make_dict(obj), fields)
 
-    def _update_item(self, id, **kwargs):
+    def _update_item(self, context, id, **kwargs):
         key = self.delegate.resource_name
         resource_dict = kwargs[key][key]
         # XXX context and verbase are not defined here, probably missing in the
         # method signature; please fix
         obj = self._get_by_id(context, id, verbose=verbose)
-        return self.delegate.update(obj, resource_dict)
+        return self.delegate.update(context, obj, resource_dict)
 
     def _create_item(self, context, **kwargs):
         key = self.delegate.resource_name
         resource_dict = kwargs[key][key]
         tenant_id = self._get_tenant_id_for_create(context, resource_dict)
-        return self.delegate.create(tenant_id, resource_dict)
+        return self.delegate.create(context, tenant_id, resource_dict)
 
     def _delete_item(self, context, id):
         # XXX verbose is missing a definition, probably missing from the method
@@ -139,11 +139,11 @@ class ResourceDelegateInterface(object):
         return ()
 
     @abc.abstractmethod
-    def update(self, tenant_id, resource, body):
+    def update(self, context, tenant_id, resource, body):
         pass
 
     @abc.abstractmethod
-    def create(self, tenant_id, body):
+    def create(self, context, tenant_id, body):
         pass
 
     @abc.abstractmethod
@@ -156,20 +156,17 @@ class ResourceDelegate(ResourceDelegateInterface):
     This class partially implemnts the ResourceDelegateInterface, providing
     common code for use by child classes that inherit from it.
     """
-    def create(self, tenant_id, body):
+    def create(self, context, tenant_id, body):
         with context.session.begin(subtransactions=True):
             item = self.model(**body)
             context.session.add(item)
         return self.make_dict(item)
 
-    def update(self, tenant_id, resource, resource_dict):
+    def update(self, context, tenant_id, resource, resource_dict):
         with context.session.begin(subtransactions=True):
             item = self.model(**resource)
             context.session.update(item)
         return self.make_dict(item)
-
-    def delete(self, tenant_id, resource, resource_dict):
-        pass
 
 
 def create_extension(delegate):
