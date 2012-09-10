@@ -328,7 +328,7 @@ class FilterRule(model_base.BASEV2, HasId, HasTenant):
 
     #FilterRule Model Validators using sqlalchamey simple validators
     @validates('action')
-    def validate_name(self, key, action):
+    def validate_action(self, key, action):
         assert isinstance(action, basestring)
         assert len(action) <= 6
         return action
