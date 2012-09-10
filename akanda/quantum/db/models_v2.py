@@ -39,12 +39,11 @@ LOG = logging.getLogger(__name__)
 
 
 class Validator:
+    """[murraju]Consider moving the validators to a shared
+    attributes class
+    """
 
-    #VALIDATORS
-    #Validate private and public port ranges
-    '''Consider moving the following to some shared
-    attributes class'''
-
+    #UUID Validator
     #Used by type() regex to check if IDs are UUID
     HEX_ELEM = '[0-9A-Fa-f]'
     UUID_PATTERN = '-'.join([HEX_ELEM + '{8}', HEX_ELEM + '{4}',
@@ -250,8 +249,8 @@ class PortForward(model_base.BASEV2, HasId, HasTenant):
 class AddressBookEntry(model_base.BASEV2, HasId, HasTenant):
     """Represents as part of an AddressBook extension"""
 
-    '''__tablename__ seems to be needed for plural of models ending
-    with 'y in Quantum DB migrations'''
+    '''[murraju] __tablename__ seems to be needed for plural of models ending
+    in 'y' for Quantum DB migrations'''
     __tablename__ = 'addressbookentries'
 
     group_id = sa.Column(sa.String(36), sa.ForeignKey('addressbookgroups.id'),
@@ -274,7 +273,7 @@ class AddressBookEntry(model_base.BASEV2, HasId, HasTenant):
 
 
 class AddressBookGroup(model_base.BASEV2, HasId, HasTenant):
-    """Represents as part of an AddressBook extension"""
+    """Represents as (part of) an AddressBook extension"""
 
     name = sa.Column(sa.String(255), nullable=False, primary_key=True)
     table_id = sa.Column(sa.String(36), sa.ForeignKey('addressbooks.id'),
@@ -297,7 +296,7 @@ class AddressBookGroup(model_base.BASEV2, HasId, HasTenant):
 
 
 class AddressBook(model_base.BASEV2, HasId, HasTenant):
-    """Represents as part of an AddressBook extension"""
+    """Represents as (part of) an AddressBook extension"""
 
     name = sa.Column(sa.String(255), nullable=False, primary_key=True)
     groups = orm.relationship(AddressBookGroup, backref='book')
