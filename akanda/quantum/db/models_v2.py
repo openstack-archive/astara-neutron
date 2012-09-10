@@ -220,7 +220,7 @@ class PortForward(model_base.BASEV2, HasId, HasTenant):
 
     @validates('name')
     def validate_name(self, key, name):
-        assert isinstance(name, basestring) is str
+        assert isinstance(name, basestring)
         assert len(name) <= 255
         return name
 
@@ -252,7 +252,7 @@ class PortForward(model_base.BASEV2, HasId, HasTenant):
 
     @validates('op_status')
     def validate_op_status(self, key, op_status):
-        assert isinstance(op_status, basestring) is str
+        assert isinstance(op_status, basestring)
         assert len(op_status) <= 16
         return op_status
 
@@ -294,7 +294,7 @@ class AddressBookGroup(model_base.BASEV2, HasId, HasTenant):
     #AddressBookGroup Model Validators using sqlalchamey simple validators
     @validates('name')
     def validate_name(self, key, name):
-        assert isinstance(name, basestring) is str
+        assert isinstance(name, basestring)
         assert len(name) <= 255
         return name
 
@@ -315,7 +315,7 @@ class AddressBook(model_base.BASEV2, HasId, HasTenant):
     #AddressBook Model Validators using sqlalchamey simple validators
     @validates('name')
     def validate_name(self, key, name):
-        assert isinstance(name, basestring) is str
+        assert isinstance(name, basestring)
         assert len(name) <= 255
         return name
 
@@ -340,7 +340,7 @@ class FilterRule(model_base.BASEV2, HasId, HasTenant):
     #FilterRule Model Validators using sqlalchamey simple validators
     @validates('action')
     def validate_name(self, key, action):
-        assert isinstance(action, basestring) is str
+        assert isinstance(action, basestring)
         assert len(action) <= 6
         return action
 
@@ -352,7 +352,7 @@ class FilterRule(model_base.BASEV2, HasId, HasTenant):
 
     @validates('protocol')
     def validate_protocol(self, key, protocol):
-        assert isinstance(protocol, basestring) is str
+        assert isinstance(protocol, basestring)
         assert protocol.lower() in ('tcp', 'udp', 'icmp')
         assert len(protocol) <= 4
         return protocol
