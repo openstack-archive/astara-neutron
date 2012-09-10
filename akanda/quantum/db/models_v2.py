@@ -46,24 +46,27 @@ LOG = logging.getLogger(__name__)
 attributes class'''
 
 
-def _validate_port_range(port, valid_values=None):
-    min_value = valid_values[0]
-    max_value = valid_values[65536]
-    if port >= min_value and port <= max_value:
-        return
-    else:
-        msg_dict = dict(port=port, min_value=min_value, 
-            max_value=max_value)
-        msg = _("%(port) is not in the range between %(min_value)"
-            "and %(max_value)") % msg_dict
-        LOG.debug("validate_port_range: %s", msg)
-        return msg
+class Validator:
 
-#Used by type() regex to check if IDs are UUID
-HEX_ELEM = '[0-9A-Fa-f]'
-UUID_PATTERN = '-'.join([HEX_ELEM + '{8}', HEX_ELEM + '{4}',
-                         HEX_ELEM + '{4}', HEX_ELEM + '{4}',
-                         HEX_ELEM + '{12}'])
+    @classmethod
+    def _validate_port_range(port, valid_values=None):
+        min_value = valid_values[0]
+        max_value = valid_values[65536]
+        if port >= min_value and port <= max_value:
+            return
+        else:
+            msg_dict = dict(port=port, min_value=min_value,
+                max_value=max_value)
+            msg = ("%(port) is not in the range between %(min_value)"
+                "and %(max_value)") % msg_dict
+            LOG.debug("validate_port_range: %s", msg)
+            return msg
+
+    #Used by type() regex to check if IDs are UUID
+    HEX_ELEM = '[0-9A-Fa-f]'
+    UUID_PATTERN = '-'.join([HEX_ELEM + '{8}', HEX_ELEM + '{4}',
+                             HEX_ELEM + '{4}', HEX_ELEM + '{4}',
+                             HEX_ELEM + '{12}'])
 
 
 class HasTenant(object):
@@ -226,13 +229,13 @@ class PortForward(model_base.BASEV2, HasId, HasTenant):
 
     @validates('public_port')
     def validate_public_port(self, key, public_port):
-        public_port = int(public_port)
-        assert _validate_port_range(public_port)
+        #public_port = int(public_port)
+        assert Validator._validate_port_range(public_port)
         return public_port
 
     @validates('instance_id')
     def validate_instance_id(self, key, instance_id):
-        retype = type(re.compile(UUID_PATTERN))
+        retype = type(re.compile(Validator.UUID_PATTERN))
         assert isinstance(re.compile(instance_id), retype)
         assert len(instance_id) <= 36
         return instance_id
@@ -240,12 +243,12 @@ class PortForward(model_base.BASEV2, HasId, HasTenant):
     @validates('private_port')
     def validate_private_port(self, key, private_port):
         private_port = int(private_port)
-        assert _validate_port_range(private_port)
+        assert Validator._validate_port_range(private_port)
         return private_port
 
     @validates('fixed_id')
     def validate_fixed_id(self, key, fixed_id):
-        retype = type(re.compile(UUID_PATTERN))
+        retype = type(re.compile(Validator.UUID_PATTERN))
         assert isinstance(re.compile(fixed_id), retype)
         assert len(fixed_id) <= 36
         return fixed_id
@@ -300,7 +303,7 @@ class AddressBookGroup(model_base.BASEV2, HasId, HasTenant):
 
     @validates('table_id')
     def validate_table_id(self, key, table_id):
-        retype = type(re.compile(UUID_PATTERN))
+        retype = type(re.compile(Validator.UUID_PATTERN))
         assert isinstance(re.compile(table_id), retype)
         assert len(table_id) <= 36
         return table_id
@@ -359,7 +362,7 @@ class FilterRule(model_base.BASEV2, HasId, HasTenant):
 
     @validates('source_alias')
     def validate_source_alias(self, key, source_alias):
-        retype = type(re.compile(UUID_PATTERN))
+        retype = type(re.compile(Validator.UUID_PATTERN))
         assert isinstance(re.compile(source_alias), retype)
         assert len(source_alias) <= 36
         return source_alias
@@ -367,13 +370,13 @@ class FilterRule(model_base.BASEV2, HasId, HasTenant):
     @validates('source_port')
     def validate_source_port(self, key, source_port):
         source_port = int(source_port)
-        assert _validate_port_range(source_port)
+        assert Validator._validate_port_range(source_port)
         assert len(source_port) <= 36
         return source_port
 
     @validates('destination_alias')
     def validate_destination_alias(self, key, destination_alias):
-        retype = type(re.compile(UUID_PATTERN))
+        retype = type(re.compile(Validator.UUID_PATTERN))
         assert isinstance(re.compile(destination_alias), retype)
         assert len(destination_alias) <= 36
         return destination_alias
@@ -381,7 +384,7 @@ class FilterRule(model_base.BASEV2, HasId, HasTenant):
     @validates('destination_port')
     def validate_destination_port(self, key, destination_port):
         destination_port = int(destination_port)
-        assert _validate_port_range(destination_port)
+        assert Validator._validate_port_range(destination_port)
         assert len(destination_port) <= 36
         return destination_port
 
