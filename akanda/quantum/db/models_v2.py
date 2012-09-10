@@ -261,7 +261,7 @@ class AddressBookEntry(model_base.BASEV2, HasId, HasTenant):
     #AddressBookEntry Model Validators using sqlalchamey simple validators
     @validates('group_id')
     def validate_name(self, key, group_id):
-        retype = type(re.compile(UUID_PATTERN))
+        retype = type(re.compile(Validator.UUID_PATTERN))
         assert isinstance(re.compile(group_id), retype)
         assert len(group_id) <= 36
         return group_id
