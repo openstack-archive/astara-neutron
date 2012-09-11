@@ -331,8 +331,8 @@ class FilterRule(model_base.BASEV2, HasId, HasTenant):
 
     @validates('ip_version')
     def validate_ip_version(self, key, ip_version):
-        assert isinstance(ip_version) is int
-        assert isinstance(ip_version, None)
+        ip_version = int(ip_version)
+        assert ip_version is None or isinstance(ip_version, int)
         return ip_version
 
     @validates('protocol')
@@ -353,7 +353,6 @@ class FilterRule(model_base.BASEV2, HasId, HasTenant):
     def validate_source_port(self, key, source_port):
         source_port = int(source_port)
         assert source_port >= 0 and source_port <= 65536
-        assert len(source_port) <= 36
         return source_port
 
     @validates('destination_alias')
@@ -367,7 +366,6 @@ class FilterRule(model_base.BASEV2, HasId, HasTenant):
     def validate_destination_port(self, key, destination_port):
         destination_port = int(destination_port)
         assert destination_port >= 0 and destination_port <= 65536
-        assert len(destination_port) <= 36
         return destination_port
 
     @validates('created_at')
