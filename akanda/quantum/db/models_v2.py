@@ -353,7 +353,6 @@ class FilterRule(model_base.BASEV2, HasId, HasTenant):
     def validate_source_port(self, key, source_port):
         source_port = int(source_port)
         assert source_port >= 0 and source_port <= 65536
-        assert len(source_port) <= 36
         return source_port
 
     @validates('destination_alias')
