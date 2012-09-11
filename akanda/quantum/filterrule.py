@@ -21,7 +21,6 @@ from quantum.api.v2 import attributes
 from quantum.db import models_v2
 from quantum.extensions import extensions
 
-
 from quantum.extensions import _authzbase
 
 
@@ -32,12 +31,12 @@ from quantum.extensions import _authzbase
 # can be updated to use it.
 
 
-class AddressbookResource(_authzbase.ResourceDelegate):
+class FilterruleResource(_authzbase.ResourceDelegate):
     """
     """
-    model = models_v2.AddressBook
-    resource_name = 'addressbook'
-    collection_name = 'addressbookgroups'
+    model = models_v2.FilterRule
+    resource_name = 'filterrule'
+    collection_name = 'filterrules'
 
     ATTRIBUTE_MAP = {
         'id': {'allow_post': False, 'allow_put': False,
@@ -50,31 +49,35 @@ class AddressbookResource(_authzbase.ResourceDelegate):
                       'is_visible': True},
     }
 
-    def make_dict(self, addressbook):
+    def make_dict(self, filterrule):
         """
-        Convert a addressbook model object to a dictionary.
+        Convert a filterrule model object to a dictionary.
         """
-        res = {'id': addressbook['id'],
-               'name': addressbook['name'],
-               'groups': [group['id']
-                           for group in addressbook['groups']]}
+        res = {'id': filterrule['id'],
+               'action': filterrule['action'],
+               'protocol': filterrule['protocol'],
+               'source_alias': filterrule['source_alias'],
+               'source_port': filterrule['source_port'],
+               'destination_alias': filterrule['destination_alias'],
+               'destination_port': filterrule['destination_port'],
+               'created_at': filterrule['created_at']}
         return res
 
 
-_authzbase.register_quota('addressbook', 'quota_addressbook')
+_authzbase.register_quota('filterrule', 'quota_filterrule')
 
 
-class Addressbook(object):
+class Filterrule(object):
     """
     """
     def get_name(self):
-        return "addressbook"
+        return "filter rule"
 
     def get_alias(self):
-        return "dhaddressbook"
+        return "dhfilterrule"
 
     def get_description(self):
-        return "An addressbook extension"
+        return "A filter rule extension"
 
     def get_namespace(self):
         return 'http://docs.dreamcompute.com/api/ext/v1.0'
@@ -84,9 +87,9 @@ class Addressbook(object):
 
     def get_resources(self):
         return [extensions.ResourceExtension(
-            'dhaddressbook',
-            _authzbase.create_extension(AddressbookResource()))]
-            #_authzbase.ResourceController(AddressBookResource()))]
+            'dhfilterrule',
+            _authzbase.create_extension(FilterruleResource()))]
+            #_authzbase.ResourceController(FilterRuleResource()))]
 
     def get_actions(self):
         return []
