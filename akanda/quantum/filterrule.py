@@ -40,6 +40,28 @@ class FilterruleResource(_authzbase.ResourceDelegate):
         'tenant_id': {'allow_post': True, 'allow_put': False,
                       'required_by_policy': True,
                       'is_visible': True},
+        'action': {'allow_post': True, 'allow_put': False,
+                   'required_by_policy': True,
+                   'is_visible': True},
+        'protocol': {'allow_post': True, 'allow_put': False,
+                     'required_by_policy': True,
+                     'is_visible': True},
+        'source_alias': {'allow_post': True, 'allow_put': False,
+                         'required_by_policy': True,
+                         'is_visible': True},
+        'source_port': {'allow_post': True, 'allow_put': False,
+                        'required_by_policy': True,
+                        'is_visible': True},
+        'destination_alias': {'allow_post': True, 'allow_put': False,
+                              'required_by_policy': True,
+                              'is_visible': True},
+        'destination_port': {'allow_post': True, 'allow_put': False,
+                             'required_by_policy': True,
+                             'is_visible': True},
+        'created_at': {'allow_post': False, 'allow_put': False,
+                       'required_by_policy': True,
+                       'is_visible': True}
+
     }
 
     def make_dict(self, filterrule):
