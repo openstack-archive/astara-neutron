@@ -235,7 +235,7 @@ class PortForward(model_base.BASEV2, HasId, HasTenant):
 
 
 class AddressBookEntry(model_base.BASEV2, HasId, HasTenant):
-    """Represents as part of an AddressBook extension"""
+    """Represents (part of) an AddressBook extension"""
 
     '''[murraju] __tablename__ seems to be needed for plural of models ending
     in 'y' for Quantum DB migrations'''
@@ -261,7 +261,7 @@ class AddressBookEntry(model_base.BASEV2, HasId, HasTenant):
 
 
 class AddressBookGroup(model_base.BASEV2, HasId, HasTenant):
-    """Represents as (part of) an AddressBook extension"""
+    """Represents (part of) an AddressBook extension"""
 
     name = sa.Column(sa.String(255), nullable=False, primary_key=True)
     table_id = sa.Column(sa.String(36), sa.ForeignKey('addressbooks.id'),
@@ -284,7 +284,7 @@ class AddressBookGroup(model_base.BASEV2, HasId, HasTenant):
 
 
 class AddressBook(model_base.BASEV2, HasId, HasTenant):
-    """Represents as (part of) an AddressBook extension"""
+    """Represents (part of) an AddressBook extension"""
 
     name = sa.Column(sa.String(255), nullable=False, primary_key=True)
     groups = orm.relationship(AddressBookGroup, backref='book')
