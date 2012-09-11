@@ -41,6 +41,9 @@ class AddressbookResource(_authzbase.ResourceDelegate):
         'tenant_id': {'allow_post': True, 'allow_put': False,
                       'required_by_policy': True,
                       'is_visible': True},
+        'groups': {'allow_post': True, 'allow_put': False,
+                   'required_by_policy': True,
+                   'is_visible': True}
     }
 
     def make_dict(self, addressbook):
@@ -50,7 +53,7 @@ class AddressbookResource(_authzbase.ResourceDelegate):
         res = {'id': addressbook['id'],
                'name': addressbook['name'],
                'groups': [group['id']
-                           for group in addressbook['groups']]}
+               for group in addressbook['groups']]}
         return res
 
 
