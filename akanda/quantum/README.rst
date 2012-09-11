@@ -71,19 +71,22 @@ NOVA_USE_QUANTUM_API=v2
 
 Quantum Extensions install:
 
+<workdir> = https://github.com/dreamhost/akanda/tree/master/userapi_extensions/akanda/quantum
+
 1. Clone quantum to /opt/stack - git clone https://github.com/openstack/quantum.git
-2. Copy db/models.py from userapi/db to quantum/db/models.py
-3. Copy _authzbase.py userapi to quantum/extensions/
-4. Copy portfoward.py userapi to quantum/extensions/
-5. Copy firewally.py userapi to quantum/extensions/
-6. Copy addressbook.py userapi to quantum/extensions/
-7. Modify the plugin to allow the extension. In this case, the OVS plugin:
+2. Copy models_v2.py from <workdir/db> to quantum/db/models_v2.py
+3. Copy _authzbase.py <workdir> to quantum/extensions/
+4. Copy portfoward.py <workdir> to quantum/extensions/
+5. Copy firewally.py <workdir> to quantum/extensions/
+6. Copy addressbook.py <workdir> to quantum/extensions/
+7. Modify the plugin to allow the extension. In this case, the OVS plugin needs to allow
+   dhportforward, dhaddressbook, dhfilterrule:
 
     vi quantum/plugins/openvswitch/ovs_quantum_plugin.py
 
-    Edit supported_extension_aliases to allow the extension. For example, dhportfoward for portfoward.py
+    Edit supported_extension_aliases to allow the extension
 
-    supported_extension_aliases = ["provider", "os-quantum-router", "dhportfoward"]
+    supported_extension_aliases = ["provider", "os-quantum-router", "dhportfoward", "dhfilterrule", "dhaddressbook"]
 
 9. Edit /etc/quantum/quantum.conf to enable the quota driver:
 
@@ -91,11 +94,7 @@ Quantum Extensions install:
 
     quota_driver = quantum.extensions._quotav2_driver.DbQuotaDriver
 
-    Bulk operations:
-
-    allow_bulk=True
-
-10. Run ./stack.sh again to generate the required DB migrations and start required services.
+10. Run ./stack.sh again to generate the required DB migrations and start the required services.
 
 11. You should see:
 
