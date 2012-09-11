@@ -312,6 +312,7 @@ class AddressBook(model_base.BASEV2, HasId, HasTenant):
 class FilterRule(model_base.BASEV2, HasId, HasTenant):
     """Represents a FilterRule extension"""
 
+    name = sa.Column(sa.String(255))
     action = sa.Column(sa.String(6), nullable=False, primary_key=True)
     ip_version = sa.Column(sa.Integer, nullable=True)
     protocol = sa.Column(sa.String(4), nullable=False)
@@ -327,6 +328,13 @@ class FilterRule(model_base.BASEV2, HasId, HasTenant):
          nullable=False)
 
     #FilterRule Model Validators using sqlalchamey simple validators
+
+    @validates('name')
+    def validate_name(self, key, name):
+        assert isinstance(name, basestring)
+        assert len(name) <= 255
+        return name
+
     @validates('action')
     def validate_action(self, key, action):
         assert isinstance(action, basestring)
