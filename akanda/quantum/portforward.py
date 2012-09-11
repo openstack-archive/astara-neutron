@@ -42,6 +42,18 @@ class PortforwardResource(_authzbase.ResourceDelegate):
         'tenant_id': {'allow_post': True, 'allow_put': False,
                       'required_by_policy': True,
                       'is_visible': True},
+        'instance_id': {'allow_post': True, 'allow_put': False,
+                        'required_by_policy': True,
+                        'is_visible': True},
+        'private_port': {'allow_post': True, 'allow_put': False,
+                          'required_by_policy': True,
+                          'is_visible': True},
+        'fixed_id': {'allow_post': True, 'allow_put': False,
+                      'required_by_policy': True,
+                      'is_visible': True},
+        'op_status': {'allow_post': True, 'allow_put': False,
+                      'required_by_policy': True,
+                      'is_visible': True}
     }
 
     def make_dict(self, portforward):
