@@ -29,6 +29,7 @@ from sqlalchemy import orm
 from sqlalchemy.orm import validates
 
 
+from quantum.api.v2 import attributes
 from quantum.api import api_common as common
 from quantum.common import utils
 from quantum.db import model_base
@@ -36,19 +37,6 @@ from quantum.openstack.common import timeutils
 
 
 LOG = logging.getLogger(__name__)
-
-
-class Validator:
-    """[murraju]Consider moving the validators to a shared
-    attributes class
-    """
-
-    #UUID Validator
-    #Used by type() regex to check if IDs are UUID
-    HEX_ELEM = '[0-9A-Fa-f]'
-    UUID_PATTERN = '-'.join([HEX_ELEM + '{8}', HEX_ELEM + '{4}',
-                             HEX_ELEM + '{4}', HEX_ELEM + '{4}',
-                             HEX_ELEM + '{12}'])
 
 
 class HasTenant(object):
@@ -221,7 +209,7 @@ class PortForward(model_base.BASEV2, HasId, HasTenant):
 
     @validates('instance_id')
     def validate_instance_id(self, key, instance_id):
-        retype = type(re.compile(Validator.UUID_PATTERN))
+        retype = type(re.compile(attributes.UUID_PATTERN))
         assert isinstance(re.compile(instance_id), retype)
         assert len(instance_id) <= 36
         return instance_id
@@ -234,7 +222,7 @@ class PortForward(model_base.BASEV2, HasId, HasTenant):
 
     @validates('fixed_id')
     def validate_fixed_id(self, key, fixed_id):
-        retype = type(re.compile(Validator.UUID_PATTERN))
+        retype = type(re.compile(attributes.UUID_PATTERN))
         assert isinstance(re.compile(fixed_id), retype)
         assert len(fixed_id) <= 36
         return fixed_id
@@ -260,7 +248,7 @@ class AddressBookEntry(model_base.BASEV2, HasId, HasTenant):
     #AddressBookEntry Model Validators using sqlalchamey simple validators
     @validates('group_id')
     def validate_name(self, key, group_id):
-        retype = type(re.compile(Validator.UUID_PATTERN))
+        retype = type(re.compile(attributes.UUID_PATTERN))
         assert isinstance(re.compile(group_id), retype)
         assert len(group_id) <= 36
         return group_id
@@ -289,7 +277,7 @@ class AddressBookGroup(model_base.BASEV2, HasId, HasTenant):
 
     @validates('table_id')
     def validate_table_id(self, key, table_id):
-        retype = type(re.compile(Validator.UUID_PATTERN))
+        retype = type(re.compile(attributes.UUID_PATTERN))
         assert isinstance(re.compile(table_id), retype)
         assert len(table_id) <= 36
         return table_id
@@ -356,7 +344,7 @@ class FilterRule(model_base.BASEV2, HasId, HasTenant):
 
     @validates('source_alias')
     def validate_source_alias(self, key, source_alias):
-        retype = type(re.compile(Validator.UUID_PATTERN))
+        retype = type(re.compile(attributes.UUID_PATTERN))
         assert isinstance(re.compile(source_alias), retype)
         assert len(source_alias) <= 36
         return source_alias
@@ -370,7 +358,7 @@ class FilterRule(model_base.BASEV2, HasId, HasTenant):
 
     @validates('destination_alias')
     def validate_destination_alias(self, key, destination_alias):
-        retype = type(re.compile(Validator.UUID_PATTERN))
+        retype = type(re.compile(attributes.UUID_PATTERN))
         assert isinstance(re.compile(destination_alias), retype)
         assert len(destination_alias) <= 36
         return destination_alias
