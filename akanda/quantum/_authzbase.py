@@ -22,7 +22,6 @@ import abc
 from sqlalchemy.orm import exc as sa_exc
 
 from quantum import quota
-#from quantum.api.v2 import attributes
 from quantum.api.v2 import base
 from quantum.api.v2 import resource as api_resource
 from quantum.common import exceptions as q_exc

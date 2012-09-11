@@ -24,12 +24,6 @@ from quantum.extensions import extensions
 from quantum.extensions import _authzbase
 
 
-# XXX: I used Network as an existing model for testing.  Need to change to
-# use an actual PortForward model.
-#
-# Duncan: cool, we'll get a PortForward model in place ASAP, so that this code
-# can be updated to use it.
-
 class PortforwardResource(_authzbase.ResourceDelegate):
     """
     This class is responsible for receiving REST requests and operating on the
