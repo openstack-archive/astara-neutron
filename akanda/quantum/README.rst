@@ -1,19 +1,24 @@
-Akanda User-facing API implemented as a Quantum Extension
+Akanda User-facing API implemented as a Quantum Resource Extension
 ==========================================================
 
 Portforward
 -----------
 
-portfoward.py implemented under quantum/extensions allows... 
+portfoward.py implemented under quantum/extensions allows the ability
+to create portforwarding rules. 
 
 Filterrule
 ----------
 
-filterrule.py implemented under quantum/extensions allows...
+filterrule.py implemented under quantum/extensions allows the ability
+to create firewall rules that eventually gets implemented as OpenBSD
+PF rules within the Akanda appliance.
 
 AddressBook
 ---------
-addressbook.py implemented under quantum/extensions allows...
+addressbook.py implemented under quantum/extensions allows the ability
+to administratively manage IP Address groups that can be used in filter
+rules.
 
 Info
 ----
@@ -21,7 +26,7 @@ Info
 This is the home for the REST API that users will be calling directly with
 their preferred REST tool (curl, Python wrapper, etc.).
 
-This code will eventually become part of OpenStack or act as a source or
+This code will eventually become part of OpenStack Qauntum or act as a source or
 inspiration that will. As such, this API should be constructed entirely with
 standard OpenStack tools.
 
@@ -29,8 +34,9 @@ standard OpenStack tools.
 Exploratory Dev Work
 --------------------
 
-You also have to update Quantum's policy file for the extension to work with
-authZ.
+The resource extensions are implemented with the ability to leverage AuthZ.
+In order to use AuthZ, update Quantum's policy file for the extension to work 
+with the following:
 
     "create_portforward": [],
     "get_portforward": [["rule:admin_or_owner"]],
@@ -38,7 +44,7 @@ authZ.
     "delete_portforward": [["rule:admin_or_owner"]]
 
 
-If you want to use quotas:
+To use quotas:
 
 add to the QUOTAS section of quantum.conf
 
@@ -73,8 +79,8 @@ Quantum Extensions install:
 
 <workdir> = https://github.com/dreamhost/akanda/tree/master/userapi_extensions/akanda/quantum
 
-1. Clone quantum to /opt/stack - git clone https://github.com/openstack/quantum.git
-2. Copy models_v2.py from <workdir/db> to quantum/db/models_v2.py
+1. Clone quantum to /opt/stack using git clone https://github.com/openstack/quantum.git
+2. Overwrite models_v2.py from <workdir/db> to quantum/db/models_v2.py
 3. Copy _authzbase.py <workdir> to quantum/extensions/
 4. Copy portfoward.py <workdir> to quantum/extensions/
 5. Copy firewally.py <workdir> to quantum/extensions/
@@ -96,16 +102,17 @@ Quantum Extensions install:
 
 10. Run ./stack.sh again to generate the required DB migrations and start the required services.
 
-11. You should see:
+11. You should see for example (dhaddressbook in this case), something similar to the following 
+    to indicate a successful load of an extension:
 
-2012-08-30 15:33:11     INFO [quantum.api.extensions] Loading extension file: portforward.py
-2012-08-30 15:33:11    DEBUG [quantum.api.extensions] Ext name: port forward
-2012-08-30 15:33:11    DEBUG [quantum.api.extensions] Ext alias: dhportforward
-2012-08-30 15:33:11    DEBUG [quantum.api.extensions] Ext description: A port forwarding extension
-2012-08-30 15:33:11    DEBUG [quantum.api.extensions] Ext namespace: http://docs.dreamcompute.com/api/ext/v1.0
-2012-08-30 15:33:11    DEBUG [quantum.api.extensions] Ext updated: 2012-08-02T16:00:00-05:00
-2012-08-30 15:33:11  WARNING [quantum.api.extensions] extension dhportforward not supported by
-plugin <quantum.plugins.openvswitch.ovs_quantum_plugin.OVSQuantumPluginV2 object at 0x336fc50>
+2012-09-11 09:17:04     INFO [quantum.api.extensions] Initializing extension manager.
+2012-09-11 09:17:04     INFO [quantum.api.extensions] Loading extension file: _authzbase.py
+2012-09-11 09:17:04     INFO [quantum.api.extensions] Loading extension file: addressbook.py
+2012-09-11 09:17:04    DEBUG [quantum.api.extensions] Ext name: addressbook
+2012-09-11 09:17:04    DEBUG [quantum.api.extensions] Ext alias: dhaddressbook
+2012-09-11 09:17:04    DEBUG [quantum.api.extensions] Ext description: An addressbook extension
+2012-09-11 09:17:04    DEBUG [quantum.api.extensions] Ext namespace: http://docs.dreamcompute.com
+/api/ext/v1.0
 
 To manually start and stop Quantum Services under DevStack:
 
