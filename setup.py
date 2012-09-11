@@ -4,9 +4,9 @@ from setuptools import setup, find_packages
 
 
 setup(
-    name='Akanda Horizon Dashboard Plugin',
+    name='Akdanda Quantum User API',
     version='0.1.0',
-    description='OpenStack Horizon dashboards for manipulating L3 extensions',
+    description='OpenStack L3 User-Facing REST API',
     author='DreamHost',
     author_email='dev-community@dreamhost.com',
     url='http://github.com/dreamhost/akanda',
