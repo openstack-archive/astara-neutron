@@ -24,10 +24,12 @@ def create_dummy_ipallocations_id():
     engine.execute("USE ovs_quantum")
     networks = engine.execute('select * from networks limit 1')
 
+    #Select subnet id (Foreign Key)
     for row in subnets:
         print "using subnet id: ", row['id']
         subnet_id = row['id']
 
+    #Select network id (Foreign Key)
     for row in networks:
         print "using network id: ", row['id']
         network_id = row['id']
