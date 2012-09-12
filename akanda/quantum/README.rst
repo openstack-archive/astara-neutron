@@ -83,7 +83,7 @@ Quantum Extensions install:
 2. Overwrite models_v2.py from <workdir/db> to quantum/db/models_v2.py
 3. Copy _authzbase.py <workdir> to quantum/extensions/
 4. Copy portfoward.py <workdir> to quantum/extensions/
-5. Copy firewally.py <workdir> to quantum/extensions/
+5. Copy filterrule.py <workdir> to quantum/extensions/
 6. Copy addressbook.py <workdir> to quantum/extensions/
 7. Modify the plugin to allow the extension. In this case, the OVS plugin needs to allow
    dhportforward, dhaddressbook, dhfilterrule:
