@@ -94,16 +94,10 @@ Quantum Extensions install:
 
     supported_extension_aliases = ["provider", "os-quantum-router", "dhportforward", "dhfilterrule", "dhaddressbook"]
 
-9. Edit /etc/quantum/quantum.conf to enable the quota driver:
+9. Run ./stack.sh again to generate the required DB migrations and start the required services.
 
-    [QUOTAS]
-
-    quota_driver = quantum.extensions._quotav2_driver.DbQuotaDriver
-
-10. Run ./stack.sh again to generate the required DB migrations and start the required services.
-
-11. You should see for example (dhaddressbook in this case), something similar to the following 
-    to indicate a successful load of an extension:
+10. You should see for example (dhaddressbook in this case), something similar to the following 
+    to indicate a successful load of an extension, however it is not complete without quotas:
 
 2012-09-11 09:17:04     INFO [quantum.api.extensions] Initializing extension manager.
 2012-09-11 09:17:04     INFO [quantum.api.extensions] Loading extension file: _authzbase.py
@@ -114,14 +108,39 @@ Quantum Extensions install:
 2012-09-11 09:17:04    DEBUG [quantum.api.extensions] Ext namespace: http://docs.dreamcompute.com
 /api/ext/v1.0
 
+11. Hit Ctrl+C and edit /etc/quantum/quantum.conf to enable the quota driver:
+
+    [QUOTAS]
+
+    quota_driver = quantum.extensions._quotav2_driver.DbQuotaDriver
+
+12. Run the following to start Quantum again:
+
+cd /opt/stack/quantum && python /opt/stack/quantum/bin/quantum-server
+--config-file /etc/quantum/quantum.conf
+--config-file /etc/quantum/plugins/openvswitch/ovs_quantum_plugin.ini
+
+With quotas enabled, the output should look like the following:
+
+2012-09-12 15:00:37  WARNING [quantum.api.extensions] Loaded extension: quotas
+2012-09-12 15:00:37    DEBUG [routes.middleware] Initialized with method overriding = True, and path info altering = True
+2012-09-12 15:00:37    DEBUG [quantum.api.extensions] Extended resource: extensions
+2012-09-12 15:00:37    DEBUG [quantum.api.extensions] Extended resource: dhportforward
+2012-09-12 15:00:37    DEBUG [quantum.api.extensions] Extended resource: dhaddressbook
+2012-09-12 15:00:37    DEBUG [quantum.api.extensions] Extended resource: quotas
+2012-09-12 15:00:37    DEBUG [quantum.api.extensions] Extended resource: dhfilterrule
+2012-09-12 15:00:37    DEBUG [quantum.api.extensions] Extended resource: routers
+2012-09-12 15:00:37    DEBUG [quantum.api.extensions] Extended resource: floatingips
+2012-09-12 15:00:37    DEBUG [routes.middleware] Initialized with method overriding = True, and path info altering = True
+
+Appendix:
+
 To manually start and stop Quantum Services under DevStack:
 
 1. Run 'screen -x'. To show a list of screens, use Ctrl+A+"
 2. Select q-svc. In most cases - Ctrl+A+1 should work.
 3. Run the following to start Quantum or Ctrl+C to stop:
 
-cd /opt/stack/quantum && python /opt/stack/quantum/bin/quantum-server
---config-file /etc/quantum/quantum.conf
---config-file /etc/quantum/plugins/openvswitch/ovs_quantum_plugin.ini
+
 
 
