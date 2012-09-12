@@ -92,7 +92,7 @@ Quantum Extensions install:
 
     Edit supported_extension_aliases to allow the extension
 
-    supported_extension_aliases = ["provider", "os-quantum-router", "dhportfoward", "dhfilterrule", "dhaddressbook"]
+    supported_extension_aliases = ["provider", "os-quantum-router", "dhportforward", "dhfilterrule", "dhaddressbook"]
 
 9. Edit /etc/quantum/quantum.conf to enable the quota driver:
 
