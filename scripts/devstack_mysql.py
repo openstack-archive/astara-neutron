@@ -1,37 +1,45 @@
 # -*- coding: utf-8 -*-
+import uuid
+
 import sqlalchemy
 from sqlalchemy import create_engine
-from sqlalchemy import MetaData, Column, Table, ForeignKey
-from sqlalchemy import Integer, String
+from sqlalchemy import MetaData
 
 
 try:
-    engine = sqlalchemy.create_engine('mysql://root:openstack@localhost')
+    engine = create_engine('mysql://root:openstack@localhost')
     metadata = MetaData(bind=engine)
 except Exception, e:
     raise e
 
-engine.execute("USE ovs_quantum")
-subnets = engine.execute('select * from subnets limit 1')
-engine.execute("USE ovs_quantum")
-networks = engine.execute('select * from networks limit 1')
 
+def create_dummy_ipallocations_id():
+    """
+    [murraju] This is a quick hack to generate an ipallocations id
+    that can be used by fixed id in port forwards to allow successful
+    POST requests. This for devstack or development purposes only
+    """
+    engine.execute("USE ovs_quantum")
+    subnets = engine.execute('select * from subnets limit 1')
+    engine.execute("USE ovs_quantum")
+    networks = engine.execute('select * from networks limit 1')
 
-def construct_sql():
     for row in subnets:
-        print "subnet id: ", row['id']
+        print "using subnet id: ", row['id']
         subnet_id = row['id']
 
     for row in networks:
-        print "network id: ", row['id']
+        print "using network id: ", row['id']
         network_id = row['id']
 
+    ipallocations_id = uuid.uuid1()
     ipallocations_table = sqlalchemy.Table("ipallocations",
                                            metadata, autoload=True)
     insert_sql = ipallocations_table.insert()
-    insert_sql.execute(id='73ed9ee0-fd02-11e1-a21f-0800200c9a66',
+    insert_sql.execute(id=ipallocations_id,
                        subnet_id=subnet_id, network_id=network_id,
                        ip_address='172.16.20.1')
 
+    print "Created ipallocations id: ", ipallocations_id
 
-construct_sql()
+create_dummy_ipallocations_id()
