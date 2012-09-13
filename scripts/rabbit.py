@@ -6,7 +6,8 @@ import pika
 import sys
 credentials = pika.PlainCredentials('guest', 'yetanothersecret')
 connection = pika.BlockingConnection(pika.ConnectionParameters
-    (host='192.168.57.100', credentials=credentials))
+                                    (host='192.168.57.100',
+                                     credentials=credentials))
 channel = connection.channel()
 
 channel.exchange_declare(exchange='quantum',

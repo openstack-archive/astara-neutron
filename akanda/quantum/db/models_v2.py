@@ -30,7 +30,6 @@ from sqlalchemy.orm import validates
 
 
 from quantum.api.v2 import attributes
-from quantum.api import api_common as common
 from quantum.common import utils
 from quantum.db import model_base
 from quantum.openstack.common import timeutils
@@ -189,7 +188,7 @@ class PortForward(model_base.BASEV2, HasId, HasTenant):
     # used?
     fixed_id = sa.Column(
         sa.String(36), sa.ForeignKey('ipallocations.id',
-            ondelete="CASCADE"),
+                                     ondelete="CASCADE"),
         nullable=True)
     op_status = Column(String(16))
 
@@ -242,7 +241,7 @@ class AddressBookEntry(model_base.BASEV2, HasId, HasTenant):
     __tablename__ = 'addressbookentries'
 
     group_id = sa.Column(sa.String(36), sa.ForeignKey('addressbookgroups.id'),
-        nullable=False)
+                         nullable=False)
     cidr = sa.Column(sa.String(64), nullable=False)
 
     #AddressBookEntry Model Validators using sqlalchamey simple validators
@@ -265,7 +264,7 @@ class AddressBookGroup(model_base.BASEV2, HasId, HasTenant):
 
     name = sa.Column(sa.String(255), nullable=False, primary_key=True)
     table_id = sa.Column(sa.String(36), sa.ForeignKey('addressbooks.id'),
-        nullable=False)
+                         nullable=False)
     entries = orm.relationship(AddressBookEntry, backref='groups')
 
     #AddressBookGroup Model Validators using sqlalchamey simple validators
@@ -305,15 +304,15 @@ class FilterRule(model_base.BASEV2, HasId, HasTenant):
     ip_version = sa.Column(sa.Integer, nullable=True)
     protocol = sa.Column(sa.String(4), nullable=False)
     source_alias = sa.Column(sa.String(36),
-        sa.ForeignKey('addressbookentries.id'),
-        nullable=False)
+                             sa.ForeignKey('addressbookentries.id'),
+                             nullable=False)
     source_port = sa.Column(sa.Integer, nullable=True)
     destination_alias = sa.Column(sa.String(36),
-        sa.ForeignKey('addressbookentries.id'),
-        nullable=False)
+                                  sa.ForeignKey('addressbookentries.id'),
+                                  nullable=False)
     destination_port = sa.Column(sa.Integer, nullable=True)
     created_at = sa.Column(sa.DateTime, default=timeutils.utcnow,
-         nullable=False)
+                           nullable=False)
 
     #FilterRule Model Validators using sqlalchamey simple validators
 
