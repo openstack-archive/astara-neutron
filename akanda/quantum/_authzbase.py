@@ -28,7 +28,6 @@ from quantum.api.v2 import base
 from quantum.api.v2 import resource as api_resource
 from quantum.common import exceptions as q_exc
 from quantum.openstack.common import cfg
-from quantum.openstack.common.log import verbose
 
 
 class ResourcePlugin(object):
@@ -106,7 +105,7 @@ class ResourcePlugin(object):
     def _update_item(self, context, id, **kwargs):
         key = self.delegate.resource_name
         resource_dict = kwargs[key][key]
-        obj = self._get_by_id(context, id, verbose=verbose)
+        obj = self._get_by_id(context, id, verbose=cfg.verbose)
         return self.delegate.update(context, obj, resource_dict)
 
     def _create_item(self, context, **kwargs):
@@ -116,7 +115,7 @@ class ResourcePlugin(object):
         return self.delegate.create(context, tenant_id, resource_dict)
 
     def _delete_item(self, context, id):
-        obj = self._get_by_id(context, id, verbose=verbose)
+        obj = self._get_by_id(context, id, verbose=cfg.verbose)
         with context.session.begin():
             self.delegate.before_delete(obj)
             context.session.delete(obj)
