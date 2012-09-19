@@ -66,6 +66,7 @@ class PortforwardResource(_authzbase.ResourceDelegate):
         res = {'id': portforward['id'],
                'name': portforward['name'],
                'instance_id': portforward['instance_id'],
+               'public_port': portforward['public_port'],
                'private_port': portforward['private_port'],
                'fixed_id': portforward['fixed_id'],
                'op_status': portforward['op_status']}
