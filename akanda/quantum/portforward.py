@@ -39,6 +39,9 @@ class PortforwardResource(_authzbase.ResourceDelegate):
                'is_visible': True},
         'name': {'allow_post': True, 'allow_put': True,
                  'default': '', 'is_visible': True},
+        'protocol': {'allow_post': True, 'allow_put': False,
+                      'required_by_policy': True,
+                      'is_visible': True},
         'tenant_id': {'allow_post': True, 'allow_put': False,
                       'required_by_policy': True,
                       'is_visible': True},
@@ -65,6 +68,7 @@ class PortforwardResource(_authzbase.ResourceDelegate):
         """
         res = {'id': portforward['id'],
                'name': portforward['name'],
+               'protocol': portforward['protocol'],
                'instance_id': portforward['instance_id'],
                'public_port': portforward['public_port'],
                'private_port': portforward['private_port'],
