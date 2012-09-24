@@ -179,6 +179,7 @@ class PortForward(model_base.BASEV2, HasId, HasTenant):
     """Represents a PortForward extension"""
 
     name = sa.Column(sa.String(255))
+    protocol = sa.Column(sa.String(4), nullable=False)
     public_port = sa.Column(sa.Integer, nullable=False)
     instance_id = sa.Column(sa.String(36), nullable=False)
     private_port = sa.Column(sa.Integer, nullable=True)
@@ -199,6 +200,13 @@ class PortForward(model_base.BASEV2, HasId, HasTenant):
         assert isinstance(name, basestring)
         assert len(name) <= 255
         return name
+
+    @validates('protocol')
+    def validate_protocol(self, key, protocol):
+        assert isinstance(protocol, basestring)
+        assert protocol.lower() in ('tcp', 'udp', 'icmp')
+        assert len(protocol) <= 4
+        return protocol
 
     @validates('public_port')
     def validate_public_port(self, key, public_port):
