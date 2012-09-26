@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# DreamHost Qauntum Extensions
+# DreamHost Quantum Extensions
 # Copyright 2012 New Dream Network, LLC (DreamHost)
 # @author: Murali Raju, New Dream Network, LLC (DreamHost)
 # @author: Mark Mcclain, New Dream Network, LLC (DreamHost)
