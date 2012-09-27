@@ -84,7 +84,7 @@ class Portforward(object):
     """
     """
     def get_name(self):
-        return "port forward"
+        return "portforward"
 
     def get_alias(self):
         return "dhportforward"
