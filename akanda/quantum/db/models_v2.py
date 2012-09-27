@@ -395,23 +395,23 @@ class PortAlias(model_base.BASEV2, HasId, HasTenant):
     name = sa.Column(sa.String(255))
     protocol = sa.Column(sa.String(4), nullable=False)
     port = sa.Column(sa.Integer, nullable=True)
-    
+
     @validates('name')
     def validate_name(self, key, name):
         assert isinstance(name, basestring)
         assert len(name) <= 255
         return name
-        
-   @validates('protocol')
-   def validate_protocol(self, key, protocol):
-       assert isinstance(protocol, basestring)
-       assert protocol.lower() in ('tcp', 'udp', 'icmp')
-       assert len(protocol) <= 4
-       return protocol
+
+    @validates('protocol')
+    def validate_protocol(self, key, protocol):
+        assert isinstance(protocol, basestring)
+        assert protocol.lower() in ('tcp', 'udp', 'icmp')
+        assert len(protocol) <= 4
+        return protocol
 
     @validates('port')
     def validate_port(self, key, port):
         port = int(port)
         assert port >= 0 and port <= 65536
         return port
-    
+        
