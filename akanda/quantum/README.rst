@@ -85,14 +85,15 @@ Quantum Extensions install:
 4. Copy portfoward.py <workdir> to quantum/extensions/
 5. Copy filterrule.py <workdir> to quantum/extensions/
 6. Copy addressbook.py <workdir> to quantum/extensions/
-7. Modify the plugin to allow the extension. In this case, the OVS plugin needs to allow
+7. Copy portalias.py <workdir> to quantum/extensions/
+8. Modify the plugin to allow the extension. In this case, the OVS plugin needs to allow
    dhportforward, dhaddressbook, dhfilterrule:
 
     vi quantum/plugins/openvswitch/ovs_quantum_plugin.py
 
     Edit supported_extension_aliases to allow the extension
 
-    supported_extension_aliases = ["provider", "router", "dhportforward", "dhfilterrule", "dhaddressbook"]
+    supported_extension_aliases = ["provider", "router", "dhportforward", "dhfilterrule", "dhaddressbook", "dhportalias"]
 
 9. Run ./stack.sh again to generate the required DB migrations and start the required services.
 
