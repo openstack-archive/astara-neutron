@@ -183,12 +183,8 @@ class PortForward(model_base.BASEV2, HasId, HasTenant):
     public_port = sa.Column(sa.Integer, nullable=False)
     instance_id = sa.Column(sa.String(36), nullable=False)
     private_port = sa.Column(sa.Integer, nullable=True)
-    # Quantum port address are stored in ipallocation which are internally
-    # referred to as fixed_id, thus the name below.
-    # XXX can we add a docsting to this model that explains how fixed_id is
-    # used?
-    fixed_id = sa.Column(
-        sa.String(36), sa.ForeignKey('ipallocations.id',
+    port_id = sa.Column(
+        sa.String(36), sa.ForeignKey('ports.id',
                                      ondelete="CASCADE"),
         nullable=True)
     op_status = Column(String(16))
@@ -227,12 +223,12 @@ class PortForward(model_base.BASEV2, HasId, HasTenant):
         assert private_port >= 0 and private_port <= 65536
         return private_port
 
-    @validates('fixed_id')
-    def validate_fixed_id(self, key, fixed_id):
+    @validates('port_id')
+    def validate_port_id(self, key, port_id):
         retype = type(re.compile(attributes.UUID_PATTERN))
-        assert isinstance(re.compile(fixed_id), retype)
-        assert len(fixed_id) <= 36
-        return fixed_id
+        assert isinstance(re.compile(port_id), retype)
+        assert len(port_id) <= 36
+        return port_id
 
     @validates('op_status')
     def validate_op_status(self, key, op_status):
