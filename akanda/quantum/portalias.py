@@ -33,7 +33,7 @@ class PortaliasResource(_authzbase.ResourceDelegate):
     """
     model = models_v2.PortAlias
     resource_name = 'portalias'
-    collection_name = 'portaliasgroups'
+    collection_name = 'portaliases'
 
     ATTRIBUTE_MAP = {
         'id': {'allow_post': False, 'allow_put': False,
