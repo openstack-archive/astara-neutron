@@ -251,6 +251,7 @@ class AddressBookEntry(model_base.BASEV2, HasId, HasTenant):
     group_id = sa.Column(sa.String(36), sa.ForeignKey('addressbookgroups.id'),
                          nullable=False)
     cidr = sa.Column(sa.String(64), nullable=False)
+    port_alias = sa.Column(sa.String(16), nullable=False)
 
     #AddressBookEntry Model Validators using sqlalchamey simple validators
     @validates('group_id')
@@ -266,6 +267,11 @@ class AddressBookEntry(model_base.BASEV2, HasId, HasTenant):
         assert len(cidr) <= 64
         return cidr
 
+    @validates('port_alias')
+    def validate_port_alias(self, key, port_alias):
+        assert isinstance(op_status, basestring)
+        assert len(op_status) <= 16
+        return op_status
 
 class AddressBookGroup(model_base.BASEV2, HasId, HasTenant):
     """Represents (part of) an AddressBook extension"""
