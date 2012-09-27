@@ -86,7 +86,7 @@ class Filterrule(object):
     """
     """
     def get_name(self):
-        return "filter rule"
+        return "filterrule"
 
     def get_alias(self):
         return "dhfilterrule"
