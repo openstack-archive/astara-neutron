@@ -28,7 +28,7 @@ from quantum.extensions import _authzbase
 class PortaliasResource(_authzbase.ResourceDelegate):
     """This resource was created merely to satisfy
     Horizon's need to store alias names for ports. It is
-    recommended to reactor this to perhaps just an alias
+    recommended to refactor this to perhaps just an alias
     resource that can contain aliases for multiple entities
     """
     model = models_v2.PortAlias
