@@ -267,11 +267,6 @@ class AddressBookEntry(model_base.BASEV2, HasId, HasTenant):
         assert len(cidr) <= 64
         return cidr
 
-    @validates('port_alias')
-    def validate_port_alias(self, key, port_alias):
-        assert isinstance(op_status, basestring)
-        assert len(op_status) <= 16
-        return op_status
 
 class AddressBookGroup(model_base.BASEV2, HasId, HasTenant):
     """Represents (part of) an AddressBook extension"""
@@ -392,6 +387,8 @@ class PortAlias(model_base.BASEV2, HasId, HasTenant):
     port alias extension and this is merely to satisfy
     a Horizon need
     """
+    __tablename__ = 'portaliases'
+
     name = sa.Column(sa.String(255))
     protocol = sa.Column(sa.String(4), nullable=False)
     port = sa.Column(sa.Integer, nullable=True)
@@ -414,4 +411,3 @@ class PortAlias(model_base.BASEV2, HasId, HasTenant):
         port = int(port)
         assert port >= 0 and port <= 65536
         return port
-        
