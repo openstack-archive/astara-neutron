@@ -251,7 +251,6 @@ class AddressBookEntry(model_base.BASEV2, HasId, HasTenant):
     group_id = sa.Column(sa.String(36), sa.ForeignKey('addressbookgroups.id'),
                          nullable=False)
     cidr = sa.Column(sa.String(64), nullable=False)
-    port_alias = sa.Column(sa.String(16), nullable=False)
 
     #AddressBookEntry Model Validators using sqlalchamey simple validators
     @validates('group_id')
@@ -267,11 +266,6 @@ class AddressBookEntry(model_base.BASEV2, HasId, HasTenant):
         assert len(cidr) <= 64
         return cidr
 
-    @validates('port_alias')
-    def validate_port_alias(self, key, port_alias):
-        assert isinstance(op_status, basestring)
-        assert len(op_status) <= 16
-        return op_status
 
 class AddressBookGroup(model_base.BASEV2, HasId, HasTenant):
     """Represents (part of) an AddressBook extension"""
@@ -385,3 +379,33 @@ class FilterRule(model_base.BASEV2, HasId, HasTenant):
     def validate_created_at(self, key, created_at):
         assert isinstance(created_at) is datetime
         return created_at
+
+
+class PortAlias(model_base.BASEV2, HasId, HasTenant):
+    """A PortAlias Model used by Horizon. There is no
+    port alias extension and this is merely to satisfy
+    a Horizon need
+    """
+    name = sa.Column(sa.String(255))
+    protocol = sa.Column(sa.String(4), nullable=False)
+    port = sa.Column(sa.Integer, nullable=True)
+    
+    @validates('name')
+    def validate_name(self, key, name):
+        assert isinstance(name, basestring)
+        assert len(name) <= 255
+        return name
+        
+   @validates('protocol')
+   def validate_protocol(self, key, protocol):
+       assert isinstance(protocol, basestring)
+       assert protocol.lower() in ('tcp', 'udp', 'icmp')
+       assert len(protocol) <= 4
+       return protocol
+
+    @validates('port')
+    def validate_port(self, key, port):
+        port = int(port)
+        assert port >= 0 and port <= 65536
+        return port
+    
