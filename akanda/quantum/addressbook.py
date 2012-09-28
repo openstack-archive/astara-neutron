@@ -31,7 +31,7 @@ class AddressbookResource(_authzbase.ResourceDelegate):
     model = models_v2.AddressBookEntry
     #model = models_v2.AddressBook
     resource_name = 'addressbook'
-    collection_name = 'addressbookentries'
+    collection_name = 'addressbooks'
 
     ATTRIBUTE_MAP = {
         'id': {'allow_post': False, 'allow_put': False,
