@@ -247,7 +247,6 @@ class AddressBookEntry(model_base.BASEV2, HasId, HasTenant):
     group_id = sa.Column(sa.String(36), sa.ForeignKey('addressbookgroups.id'),
                          nullable=False)
     cidr = sa.Column(sa.String(64), nullable=False)
-    port_alias = sa.Column(sa.String(16), nullable=False)
 
     #AddressBookEntry Model Validators using sqlalchamey simple validators
     @validates('group_id')
