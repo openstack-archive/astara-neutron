@@ -380,8 +380,8 @@ class FilterRule(model_base.BASEV2, HasId, HasTenant):
 
 class PortAlias(model_base.BASEV2, HasId, HasTenant):
     """A PortAlias Model used by Horizon. There is no
-    port alias extension and this is merely to satisfy
-    a Horizon need
+    need for a port alias extension and this is merely
+    to satisfy a Horizon need to store alias information
     """
     __tablename__ = 'portaliases'
 
