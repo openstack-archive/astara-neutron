@@ -143,5 +143,7 @@ To manually start and stop Quantum Services under DevStack:
 3. Run the following to start Quantum or Ctrl+C to stop:
 
 
+Gotchas:
 
+1. There is no Quantum Model validation for source and destination protocols in FilterRule. i.e you can create forward rules between UDP and TCP or anything else. Currently validation happens only in Horizon. If you use the API directly, you are on your own!
 
