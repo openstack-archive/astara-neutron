@@ -93,7 +93,7 @@ Quantum Extensions install:
 
     Edit supported_extension_aliases to allow the extension
 
-    supported_extension_aliases = ["provider", "router", "dhportforward", "dhfilterrule", "dhaddressbook", "dhportalias"]
+    supported_extension_aliases = ["provider", "router", 	]
 
 9. Run ./stack.sh again to generate the required DB migrations and start the required services.
 
