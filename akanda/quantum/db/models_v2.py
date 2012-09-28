@@ -244,17 +244,25 @@ class AddressBookEntry(model_base.BASEV2, HasId, HasTenant):
     in 'y' for Quantum DB migrations'''
     __tablename__ = 'addressbookentries'
 
-    group_id = sa.Column(sa.String(36), sa.ForeignKey('addressbookgroups.id'),
-                         nullable=False)
+    name = sa.Column(sa.String(255))
+    #Disabling relationships until later releases.
+    #group_id = sa.Column(sa.String(36), sa.ForeignKey('addressbookgroups.id'),
+    #                     nullable=False)
     cidr = sa.Column(sa.String(64), nullable=False)
 
     #AddressBookEntry Model Validators using sqlalchamey simple validators
-    @validates('group_id')
-    def validate_name(self, key, group_id):
-        retype = type(re.compile(attributes.UUID_PATTERN))
-        assert isinstance(re.compile(group_id), retype)
-        assert len(group_id) <= 36
-        return group_id
+    @validates('name')
+    def validate_name(self, key, name):
+        assert isinstance(name, basestring)
+        assert len(name) <= 255
+        return name
+
+    #@validates('group_id')
+    #def validate_group_id(self, key, group_id):
+    #    retype = type(re.compile(attributes.UUID_PATTERN))
+    #    assert isinstance(re.compile(group_id), retype)
+    #    assert len(group_id) <= 36
+    #    return group_id
 
     @validates('cidr')
     def validate_public_port(self, key, cidr):
