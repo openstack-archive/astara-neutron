@@ -34,20 +34,17 @@ class AddressbookResource(_authzbase.ResourceDelegate):
     collection_name = 'addressbooks'
 
     ATTRIBUTE_MAP = {
-        'id': {'allow_post': False, 'allow_put': False,
+        'id': {'allow_post': False, 'allow_put': True,
                'validate': {'type:regex': attributes.UUID_PATTERN},
                'is_visible': True},
         'name': {'allow_post': True, 'allow_put': True,
                  'default': '', 'is_visible': True},
-        'tenant_id': {'allow_post': True, 'allow_put': False,
+        'tenant_id': {'allow_post': True, 'allow_put': True,
                       'required_by_policy': True,
                       'is_visible': True},
-        'cidr': {'allow_post': True, 'allow_put': False,
+        'cidr': {'allow_post': True, 'allow_put': True,
                       'required_by_policy': True,
-                      'is_visible': True},
-        #'groups': {'allow_post': True, 'allow_put': False,
-        #           'required_by_policy': True,
-        #           'is_visible': True}
+                      'is_visible': True}
     }
 
     def make_dict(self, addressbook):
