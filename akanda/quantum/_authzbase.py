@@ -105,7 +105,8 @@ class ResourcePlugin(object):
     def _update_item(self, context, id, **kwargs):
         key = self.delegate.resource_name
         resource_dict = kwargs[key][key]
-        obj = self._get_by_id(context, id, verbose=cfg.verbose)
+        #obj = self._get_by_id(context, id, verbose=cfg.verbose)
+        obj = self._get_by_id(context, id)
         return self.delegate.update(context, obj, resource_dict)
 
     def _create_item(self, context, **kwargs):
@@ -115,7 +116,8 @@ class ResourcePlugin(object):
         return self.delegate.create(context, tenant_id, resource_dict)
 
     def _delete_item(self, context, id):
-        obj = self._get_by_id(context, id, verbose=cfg.verbose)
+        #obj = self._get_by_id(context, id, verbose=cfg.verbose)
+        obj = self._get_by_id(context, id)
         with context.session.begin():
             self.delegate.before_delete(obj)
             context.session.delete(obj)
