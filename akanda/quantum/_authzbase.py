@@ -99,14 +99,13 @@ class ResourcePlugin(object):
             raise q_exc.NotFound()
 
     def _get_item(self, context, id, fields=None, verbose=None):
-        obj = self._get_by_id(context, id, verbose=verbose)
+        obj = self._get_by_id(context, id, verbose=None)
         return self._fields(self.delegate.make_dict(obj), fields)
 
     def _update_item(self, context, id, **kwargs):
         key = self.delegate.resource_name
         resource_dict = kwargs[key][key]
-        #obj = self._get_by_id(context, id, verbose=cfg.verbose)
-        obj = self._get_by_id(context, id)
+        obj = self._get_by_id(context, id, verbose=None)
         return self.delegate.update(context, obj, resource_dict)
 
     def _create_item(self, context, **kwargs):
@@ -117,7 +116,7 @@ class ResourcePlugin(object):
 
     def _delete_item(self, context, id):
         #obj = self._get_by_id(context, id, verbose=cfg.verbose)
-        obj = self._get_by_id(context, id)
+        obj = self._get_by_id(context, id, verbose=None)
         with context.session.begin():
             self.delegate.before_delete(obj)
             context.session.delete(obj)
