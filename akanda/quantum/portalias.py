@@ -44,10 +44,10 @@ class PortaliasResource(_authzbase.ResourceDelegate):
         'tenant_id': {'allow_post': True, 'allow_put': False,
                       'required_by_policy': True,
                       'is_visible': True},
-        'protocol': {'allow_post': True, 'allow_put': False,
+        'protocol': {'allow_post': True, 'allow_put': True,
                       'required_by_policy': True,
                       'is_visible': True},
-        'port': {'allow_post': True, 'allow_put': False,
+        'port': {'allow_post': True, 'allow_put': True,
                       'required_by_policy': True,
                       'is_visible': True},
 
