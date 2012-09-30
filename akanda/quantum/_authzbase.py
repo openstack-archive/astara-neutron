@@ -106,7 +106,7 @@ class ResourcePlugin(object):
         key = self.delegate.resource_name
         resource_dict = kwargs[key][key]
         obj = self._get_by_id(context, id, verbose=None)
-        return self.delegate.update(context, obj, resource_dict)
+        return self.delegate.update(context, id, obj, resource_dict)
 
     def _create_item(self, context, **kwargs):
         key = self.delegate.resource_name
@@ -157,6 +157,10 @@ class ResourceDelegateInterface(object):
     def update(self, context, tenant_id, resource, body):
         pass
 
+    # @abc.abstractmethod
+    # def update(self, context, tenant_id, body):
+    #     pass
+
     @abc.abstractmethod
     def create(self, context, tenant_id, body):
         pass
@@ -178,10 +182,18 @@ class ResourceDelegate(ResourceDelegateInterface):
         return self.make_dict(item)
 
     def update(self, context, tenant_id, resource, resource_dict):
+        import pdb; pdb.set_trace()
         with context.session.begin(subtransactions=True):
             item = self.model(**resource)
             context.session.update(item)
         return self.make_dict(item)
+
+    # def update(self, context, tenant_id, resource_dict):
+    #     #import pdb; pdb.set_trace()
+    #     with context.session.begin(subtransactions=True):
+    #         item = self.model(**resource_dict)
+    #         context.session.update(item)
+    #     return self.make_dict(item)
 
 
 def create_extension(delegate):

@@ -34,16 +34,14 @@ class AddressbookResource(_authzbase.ResourceDelegate):
     collection_name = 'addressbooks'
 
     ATTRIBUTE_MAP = {
-        'id': {'allow_post': False, 'allow_put': True,
+        'id': {'allow_post': False, 'allow_put': False,
                'validate': {'type:regex': attributes.UUID_PATTERN},
                'is_visible': True},
         'name': {'allow_post': True, 'allow_put': True,
                  'default': '', 'is_visible': True},
-        'tenant_id': {'allow_post': True, 'allow_put': True,
-                      'required_by_policy': True,
+        'tenant_id': {'allow_post': True, 'allow_put': False,
                       'is_visible': True},
         'cidr': {'allow_post': True, 'allow_put': True,
-                      'required_by_policy': True,
                       'is_visible': True}
     }
 
