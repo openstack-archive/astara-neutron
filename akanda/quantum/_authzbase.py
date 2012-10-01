@@ -157,10 +157,6 @@ class ResourceDelegateInterface(object):
     def update(self, context, tenant_id, resource, body):
         pass
 
-    # @abc.abstractmethod
-    # def update(self, context, tenant_id, body):
-    #     pass
-
     @abc.abstractmethod
     def create(self, context, tenant_id, body):
         pass
@@ -172,7 +168,7 @@ class ResourceDelegateInterface(object):
 
 class ResourceDelegate(ResourceDelegateInterface):
     """
-    This class partially implemnts the ResourceDelegateInterface, providing
+    This class partially implements the ResourceDelegateInterface, providing
     common code for use by child classes that inherit from it.
     """
     def create(self, context, tenant_id, body):
@@ -182,27 +178,20 @@ class ResourceDelegate(ResourceDelegateInterface):
         return self.make_dict(item)
 
     def update(self, context, tenant_id, resource, resource_dict):
-        import pdb; pdb.set_trace()
         with context.session.begin(subtransactions=True):
-            item = self.model(**resource)
-            context.session.update(item)
+            #import pdb; pdb.set_trace()
+            item = self.model(**resource_dict)
+            context.session.query(self.model)
         return self.make_dict(item)
-
-    # def update(self, context, tenant_id, resource_dict):
-    #     #import pdb; pdb.set_trace()
-    #     with context.session.begin(subtransactions=True):
-    #         item = self.model(**resource_dict)
-    #         context.session.update(item)
-    #     return self.make_dict(item)
 
 
 def create_extension(delegate):
     """
     """
-    #for key, value in delegate.ATTRIBUTE_MAP.iteritems():
+    # for key, value in delegate.ATTRIBUTE_MAP.iteritems():
     #    if key in attributes.RESOURCE_ATTRIBUTE_MAP:
     #        pass # TODO(mark): should log that we're doing this
-    #    attributes.RESOURCE_ATTRIBUTE_MAP[key] = value
+    #     attributes.RESOURCE_ATTRIBUTE_MAP[key] = value
     return api_resource.Resource(base.Controller(ResourcePlugin(delegate),
                                                  delegate.collection_name,
                                                  delegate.resource_name,
