@@ -184,6 +184,12 @@ class ResourceDelegate(ResourceDelegateInterface):
             context.session.query(self.model)
         return self.make_dict(item)
 
+    # def update(self, context, tenant_id, resource, resource_dict):
+    #     with context.session.begin(subtransactions=True):
+    #        resource.update(**resource_dict)
+    #        context.session.add(resource)
+    #     return self.make_dict(resource)
+
 
 def create_extension(delegate):
     """

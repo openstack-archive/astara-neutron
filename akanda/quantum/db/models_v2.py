@@ -381,7 +381,7 @@ class FilterRule(model_base.BASEV2, HasId, HasTenant):
 
     @validates('created_at')
     def validate_created_at(self, key, created_at):
-        assert isinstance(created_at) is datetime
+        assert isinstance(created_at, datetime)
         return created_at
 
 
