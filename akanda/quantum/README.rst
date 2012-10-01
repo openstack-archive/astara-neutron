@@ -87,7 +87,7 @@ Quantum Extensions install:
 6. Copy addressbook.py <workdir> to quantum/extensions/
 7. Copy portalias.py <workdir> to quantum/extensions/
 8. Modify the plugin to allow the extension. In this case, the OVS plugin needs to allow
-   dhportforward, dhaddressbook, dhfilterrule:
+   dhportforward, dhaddressbook, dhfilterrule, dhportalias:
 
     vi quantum/plugins/openvswitch/ovs_quantum_plugin.py
 
