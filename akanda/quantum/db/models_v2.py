@@ -187,7 +187,6 @@ class PortForward(model_base.BASEV2, HasId, HasTenant):
         sa.String(36), sa.ForeignKey('ports.id',
                                      ondelete="CASCADE"),
         nullable=True)
-    op_status = Column(String(16))
 
     #PortForward Model Validators using sqlalchamey simple validators
 
@@ -229,12 +228,6 @@ class PortForward(model_base.BASEV2, HasId, HasTenant):
         assert isinstance(re.compile(port_id), retype)
         assert len(port_id) <= 36
         return port_id
-
-    @validates('op_status')
-    def validate_op_status(self, key, op_status):
-        assert isinstance(op_status, basestring)
-        assert len(op_status) <= 16
-        return op_status
 
 
 class AddressBookEntry(model_base.BASEV2, HasId, HasTenant):
