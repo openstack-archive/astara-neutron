@@ -35,8 +35,6 @@ class FilterruleResource(_authzbase.ResourceDelegate):
         'id': {'allow_post': False, 'allow_put': False,
                'validate': {'type:regex': attributes.UUID_PATTERN},
                'is_visible': True},
-        'name': {'allow_post': True, 'allow_put': True,
-                 'default': '', 'is_visible': True},
         'tenant_id': {'allow_post': True, 'allow_put': False,
                       'required_by_policy': True,
                       'is_visible': True},
