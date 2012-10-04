@@ -51,7 +51,8 @@ class AddressbookResource(_authzbase.ResourceDelegate):
         """
         res = {'id': addressbook['id'],
                'name': addressbook['name'],
-               'cidr': addressbook['cidr']}
+               'cidr': addressbook['cidr'],
+               'tenant_id': addressbook['tenant_id']}
         return res
 
         #res = {'id': addressbook['id'],

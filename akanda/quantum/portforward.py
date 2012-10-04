@@ -69,7 +69,8 @@ class PortforwardResource(_authzbase.ResourceDelegate):
                'instance_id': portforward['instance_id'],
                'public_port': portforward['public_port'],
                'private_port': portforward['private_port'],
-               'port_id': portforward['port_id']}
+               'port_id': portforward['port_id'],
+               'tenant_id': portforward['tenant_id']}
         return res
 
 
