@@ -40,6 +40,6 @@
     "update_port:fixed_ips": [["rule:admin_or_network_owner"]],
     "delete_port": [["rule:admin_or_owner"]],
 
-    "extension:dhaddressbook:view": [["rule:regular_user"]],
-    "extension:dhaddressbook:set": [["rule:admin_only"]]
+    "extension:dhaddressbook:view": [["rule:admin_or_regular_user"]],
+    "extension:dhaddressbook:set": [["rule:admin_or_regular_user"]]
 }

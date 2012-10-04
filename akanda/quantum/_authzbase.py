@@ -98,7 +98,7 @@ class ResourcePlugin(object):
         except sa_exc.NoResultFound:
             raise q_exc.NotFound()
 
-    def _get_item(self, context, id, fields=None, verbose=None):
+    def _get_item(self, context, id, fields={}, verbose=None):
         obj = self._get_by_id(context, id, verbose=None)
         return self._fields(self.delegate.make_dict(obj), fields)
 
