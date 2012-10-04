@@ -77,7 +77,7 @@ class Portalias(object):
         return "dhportalias"
 
     def get_description(self):
-        return "An portalias extension"
+        return "A portalias extension"
 
     def get_namespace(self):
         return 'http://docs.dreamcompute.com/api/ext/v1.0'

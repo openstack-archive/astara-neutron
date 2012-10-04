@@ -171,8 +171,8 @@ class Network(model_base.BASEV2, HasId, HasTenant):
     shared = sa.Column(sa.Boolean)
 
 
-#DreamHost PortFoward, Firewall(FilterRule), AddressBook models as
-#Quantum extensions
+# DreamHost PortFoward, Firewall(FilterRule), AddressBook models as
+# Quantum extensions
 
 
 class PortForward(model_base.BASEV2, HasId, HasTenant):
@@ -184,9 +184,9 @@ class PortForward(model_base.BASEV2, HasId, HasTenant):
     instance_id = sa.Column(sa.String(36), nullable=False)
     private_port = sa.Column(sa.Integer, nullable=True)
     port_id = sa.Column(
-        sa.String(36), sa.ForeignKey('ports.id',
-                                     ondelete="CASCADE"),
-        nullable=True)
+              sa.String(36), sa.ForeignKey('ports.id',
+                             ondelete="CASCADE"),
+              nullable=True)
 
     #PortForward Model Validators using sqlalchamey simple validators
 
