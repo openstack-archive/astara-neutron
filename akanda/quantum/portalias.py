@@ -60,7 +60,8 @@ class PortaliasResource(_authzbase.ResourceDelegate):
         res = {'id': portalias['id'],
                'name': portalias['name'],
                'protocol': portalias['protocol'],
-               'port': portalias['port']}
+               'port': portalias['port'],
+               'tenant_id': portalias['tenant_id']}
         return res
 
 

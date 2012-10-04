@@ -72,7 +72,7 @@ class ResourcePlugin(object):
                 self.delegate.model.tenant_id == context.tenant_id)
         return query
 
-    def _get_collection(self, context, filters=None, fields=None,
+    def _get_collection(self, context, filters=None, fields={},
                         verbose=None):
         collection = self._model_query(context)
         if filters:

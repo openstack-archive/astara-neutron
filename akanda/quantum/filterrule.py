@@ -73,7 +73,8 @@ class FilterruleResource(_authzbase.ResourceDelegate):
                'source_port': filterrule['source_port'],
                'destination_alias': filterrule['destination_alias'],
                'destination_port': filterrule['destination_port'],
-               'created_at': filterrule['created_at']}
+               'created_at': filterrule['created_at'],
+               'tenant_id': filterrule['tenant_id']}
         return res
 
 
