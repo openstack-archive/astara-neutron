@@ -100,9 +100,10 @@ class AddressBookEntry(model_base.BASEV2, models_v2.HasId,
     __tablename__ = 'addressbookentries'
 
     name = sa.Column(sa.String(255))
-    group_id = sa.Column(sa.String(36),
-                         sa.ForeignKey('addressbookgroups.id'),
-                         nullable=False)
+    group_id = sa.Column(
+        sa.String(36),
+        sa.ForeignKey('addressbookgroups.id', ondelete="CASCADE"),
+        nullable=False)
     cidr = sa.Column(sa.String(64), nullable=False)
 
     #AddressBookEntry Model Validators using sqlalchamey simple validators
@@ -130,10 +131,12 @@ class AddressBookGroup(model_base.BASEV2, models_v2.HasId,
     """Represents (part of) an AddressBook extension"""
 
     name = sa.Column(sa.String(255), nullable=False, primary_key=True)
-    table_id = sa.Column(sa.String(36), sa.ForeignKey('addressbooks.id'),
-                         nullable=False)
+    book_id = sa.Column(
+        sa.String(36),
+        sa.ForeignKey('addressbooks.id', ondelete="CASCADE"),
+        nullable=False)
     entries = orm.relationship(AddressBookEntry, backref='groups',
-                               lazy='dyanmic')
+                               lazy='dynamic')
 
     #AddressBookGroup Model Validators using sqlalchamey simple validators
     @validates('name')
@@ -142,19 +145,19 @@ class AddressBookGroup(model_base.BASEV2, models_v2.HasId,
         assert len(name) <= 255
         return name
 
-    @validates('table_id')
-    def validate_table_id(self, key, table_id):
+    @validates('book_id')
+    def validate_book_id(self, key, book_id):
         retype = type(re.compile(attributes.UUID_PATTERN))
-        assert isinstance(re.compile(table_id), retype)
-        assert len(table_id) <= 36
-        return table_id
+        assert isinstance(re.compile(book_id), retype)
+        assert len(book_id) <= 36
+        return book_id
 
 
 class AddressBook(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
     """Represents (part of) an AddressBook extension"""
 
     name = sa.Column(sa.String(255), nullable=False, primary_key=True)
-    groups = orm.relationship(AddressBookGroup, backref='book', dynamic='lazy')
+    groups = orm.relationship(AddressBookGroup, backref='book', lazy='dynamic')
 
     #AddressBook Model Validators using sqlalchamey simple validators
     @validates('name')
