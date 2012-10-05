@@ -22,9 +22,14 @@ from quantum.common import exceptions as q_exc
 from quantum.extensions import extensions
 from sqlalchemy.orm import exc
 
+# Disabling until Mark's setup works
+#
+# from akanda.quantum.db import models_v2
+# from akanda.quantum.extensions import _authzbase
 
-from akanda.quantum.db import models_v2
-from akanda.quantum.extensions import _authzbase
+
+from quantum.db import models_v2
+from quantum.extensions import _authzbase
 
 
 class AddressbookgroupResource(_authzbase.ResourceDelegate):
@@ -34,12 +39,26 @@ class AddressbookgroupResource(_authzbase.ResourceDelegate):
     resource_name = 'addressbookgroup'
     collection_name = 'addressbookgroups'
 
+    # To be used if addressbook is used
+
+    # ATTRIBUTE_MAP = {
+    #     'id': {'allow_post': False, 'allow_put': False,
+    #            'validate': {'type:regex': attributes.UUID_PATTERN},
+    #            'is_visible': True},
+    #     'book_id': {'allow_post': True, 'allow_put': False,
+    #                 'default': '', 'is_visible': True},
+    #     'name': {'allow_post': True, 'allow_put': True,
+    #              'default': '', 'is_visible': True},
+    #     'tenant_id': {'allow_post': True, 'allow_put': False,
+    #                   'is_visible': True},
+    #     'entries': {'allow_post': False, 'allow_put': False,
+    #                'is_visible': True}
+    # }
+
     ATTRIBUTE_MAP = {
         'id': {'allow_post': False, 'allow_put': False,
                'validate': {'type:regex': attributes.UUID_PATTERN},
                'is_visible': True},
-        'book_id': {'allow_post': True, 'allow_put': False,
-                    'default': '', 'is_visible': True},
         'name': {'allow_post': True, 'allow_put': True,
                  'default': '', 'is_visible': True},
         'tenant_id': {'allow_post': True, 'allow_put': False,
@@ -58,22 +77,26 @@ class AddressbookgroupResource(_authzbase.ResourceDelegate):
                'entries': [e['id'] for e in addressbookgroup['entries']]}
         return res
 
-    def create(self, context, tenant_id, body):
-        with context.session.begin(subtransactions=True):
-            #verify book_id is owned by tenant
-            qry = context.session.query(models_v2.AddressBook)
-            qry = qry.filter_by(tenant_id=tenant_id, id=body.get('book_id'))
 
-            try:
-                table = qry.one()
-            except exc.NoResultFound:
-                msg = ("Tenant %(tenant_id) does not have an address book with"
-                       " id %(book_id)s" %
-                       {'tenant_id': tenant_id, 'book_id': book_id})
-                raise q_exc.BadRequest(resource='addressbookgroup', msg=msg)
-            item = self.model(**body)
-            context.session.add(item)
-        return self.make_dict(item)
+    # Use default create via _authzbase. Comment out the following
+    # if addressbook is used
+
+    # def create(self, context, tenant_id, body):
+    #     with context.session.begin(subtransactions=True):
+    #         #verify book_id is owned by tenant
+    #         qry = context.session.query(models_v2.AddressBook)
+    #         qry = qry.filter_by(tenant_id=tenant_id, id=body.get('book_id'))
+
+    #         try:
+    #             table = qry.one()
+    #         except exc.NoResultFound:
+    #             msg = ("Tenant %(tenant_id) does not have an address book with"
+    #                    " id %(book_id)s" %
+    #                    {'tenant_id': tenant_id, 'book_id': book_id})
+    #             raise q_exc.BadRequest(resource='addressbookgroup', msg=msg)
+    #         item = self.model(**body)
+    #         context.session.add(item)
+    #     return self.make_dict(item)
 
 
 _authzbase.register_quota('addressbookgroup', 'quota_addressbookgroup')

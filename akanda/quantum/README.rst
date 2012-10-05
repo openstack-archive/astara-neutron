@@ -81,12 +81,12 @@ Quantum Extensions install:
 <workdir> = https://github.com/dreamhost/akanda/tree/master/userapi_extensions/akanda/quantum
 
 1. Clone quantum to /opt/stack using git clone https://github.com/openstack/quantum.git
-2. Change to the userapi_extensions dir within the Akanda project
+2. Change to the userapi_extensions dir within the Akanda project (rm -rf Akdanda_Quantum_User_API.egg-info/)
 3. Run python setup.py develop
-4. Return to devstack directory and replace the following lines:
+4. Return to devstack directory and add the following lines to localrc:
 -        Q_PLUGIN_CLASS="quantum.plugins.openvswitch.ovs_quantum_plugin.OVSQuantumPluginV2"
 +        Q_PLUGIN_CLASS="akanda.quantum.plugins.ovs_quantum_plugin.OVSQuantumPluginV2"
-5. Add the following line to load the extension right above Q_AUTH_STRATEGY:
+5. Edit stack.sh and add the following line to load the extension right above Q_AUTH_STRATEGY:
 +    iniset $Q_CONF_FILE DEFAULT api_extensions_path "extensions:/opt/stack/akanda/userapi_extensions/akanda/quantum/extensions"
 
 6. Run ./stack.sh again to generate the required DB migrations and start the required services.
@@ -136,6 +136,90 @@ quota_addressbookentry = 250
     "delete_addressbookentry": [["rule:admin_or_owner"]]
 
 11. Restart q-svc by using up arrow to retrieve the command from the history.
+
+
+
+Alternative setup (if the above does not work)
+
+Preliminary steps:
+
+1. Run ./stack.sh until the stack account and /opt/stack directory gets created.
+2. Hit Ctrl+C
+3. Create a localrc file under the devstack directory with the following:
+
+MYSQL_PASSWORD=openstack
+RABBIT_PASSWORD=openstack
+SERVICE_TOKEN=openstack
+SERVICE_PASSWORD=openstack
+ADMIN_PASSWORD=openstack
+enable_service q-svc
+enable_service q-agt
+enable_service q-dhcp
+enable_service quantum
+LIBVIRT_FIREWALL_DRIVER=nova.virt.firewall.NoopFirewallDriver
+Q_PLUGIN=openvswitch 
+NOVA_USE_QUANTUM_API=v2
+
+
+Quantum Extensions install:
+
+<workdir> = https://github.com/dreamhost/akanda/tree/master/userapi_extensions/akanda/quantum
+
+1. Clone quantum to /opt/stack using git clone https://github.com/openstack/quantum.git
+2. Overwrite models_v2.py from <workdir/db> to quantum/db/models_v2.py
+3. Copy extensions
+    a. Copy _authzbase.py <workdir> to quantum/extensions/
+    b. Copy portfoward.py <workdir> to quantum/extensions/
+    c. Copy filterrule.py <workdir> to quantum/extensions/
+    d. Copy addressbookgroup.py <workdir> to quantum/extensions/
+    e. Copy addressbookentry.py <workdir> to quantum/extensions/
+    f. Copy portalias.py <workdir> to quantum/extensions/
+8. Modify the plugin to allow the extension. In this case, the OVS plugin needs to allow
+   dhportforward, dhaddressbookgroup, dhaddressbookentry, dhfilterrule, dhportalias:
+
+    vi quantum/plugins/openvswitch/ovs_quantum_plugin.py
+
+    Edit supported_extension_aliases to allow the extension
+
+    supported_extension_aliases = ["provider", "router", "dhportfoward", "dhaddressbookgroup", 
+                                   "dhaddressbookentry, dhfilterrule", "dhportalias"]
+
+9. Run ./stack.sh again to generate the required DB migrations and start the required services.
+
+10. You should see for example (dhaddressbook in this case), something similar to the following 
+    to indicate a successful load of an extension, however it is not complete without quotas:
+
+2012-09-11 09:17:04     INFO [quantum.api.extensions] Initializing extension manager.
+2012-09-11 09:17:04     INFO [quantum.api.extensions] Loading extension file: _authzbase.py
+2012-09-11 09:17:04     INFO [quantum.api.extensions] Loading extension file: addressbook.py
+2012-09-11 09:17:04    DEBUG [quantum.api.extensions] Ext name: addressbook
+2012-09-11 09:17:04    DEBUG [quantum.api.extensions] Ext alias: dhaddressbook
+2012-09-11 09:17:04    DEBUG [quantum.api.extensions] Ext description: An addressbook extension
+2012-09-11 09:17:04    DEBUG [quantum.api.extensions] Ext namespace: http://docs.dreamcompute.com
+/api/ext/v1.0
+
+11. Hit Ctrl+C and edit /etc/quantum/quantum.conf to enable the quota driver:
+
+    [QUOTAS]
+
+    quota_driver = quantum.extensions._quotav2_driver.DbQuotaDriver
+
+12. Run the following to start Quantum again:
+
+cd /opt/stack/quantum && python /opt/stack/quantum/bin/quantum-server
+--config-file /etc/quantum/quantum.conf
+--config-file /etc/quantum/plugins/openvswitch/ovs_quantum_plugin.ini
+
+With quotas enabled, the output should look like the following:
+
+2012-09-12 15:00:37  WARNING [quantum.api.extensions] Loaded extension: quotas
+2012-09-12 15:00:37    DEBUG [routes.middleware] Initialized with method overriding = True, and path info altering = True
+2012-09-12 15:00:37    DEBUG [quantum.api.extensions] Extended resource: extensions
+2012-09-12 15:00:37    DEBUG [quantum.api.extensions] Extended resource: dhportforward
+2012-09-12 15:00:37    DEBUG [quantum.api.extensions] Extended resource: dhaddressbook
+2012-09-12 15:00:37    DEBUG [quantum.api.extensions] Extended resource: quotas
+2012-09-12 15:00:37    DEBUG [quantum.api.extensions] Extended resource: dhfilterrule
+
 
 
 Appendix:
