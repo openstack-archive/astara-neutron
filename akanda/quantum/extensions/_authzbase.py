@@ -72,7 +72,7 @@ class ResourcePlugin(object):
                 self.delegate.model.tenant_id == context.tenant_id)
         return query
 
-    def _get_collection(self, context, filters=None, fields={},
+    def _get_collection(self, context, filters=None, fields=None,
                         verbose=None):
         collection = self._model_query(context)
         if filters:
@@ -98,15 +98,15 @@ class ResourcePlugin(object):
         except sa_exc.NoResultFound:
             raise q_exc.NotFound()
 
-    def _get_item(self, context, id, fields={}, verbose=None):
-        obj = self._get_by_id(context, id, verbose=None)
+    def _get_item(self, context, id, fields=None, verbose=None):
+        obj = self._get_by_id(context, id, verbose=verbose)
         return self._fields(self.delegate.make_dict(obj), fields)
 
     def _update_item(self, context, id, **kwargs):
         key = self.delegate.resource_name
         resource_dict = kwargs[key][key]
-        obj = self._get_by_id(context, id, verbose=None)
-        return self.delegate.update(context, id, obj, resource_dict)
+        obj = self._get_by_id(context, id, verbose=cfg.verbose)
+        return self.delegate.update(context, obj, resource_dict)
 
     def _create_item(self, context, **kwargs):
         key = self.delegate.resource_name
@@ -115,8 +115,7 @@ class ResourcePlugin(object):
         return self.delegate.create(context, tenant_id, resource_dict)
 
     def _delete_item(self, context, id):
-        #obj = self._get_by_id(context, id, verbose=cfg.verbose)
-        obj = self._get_by_id(context, id, verbose=None)
+        obj = self._get_by_id(context, id, verbose=cfg.verbose)
         with context.session.begin():
             self.delegate.before_delete(obj)
             context.session.delete(obj)
@@ -168,7 +167,7 @@ class ResourceDelegateInterface(object):
 
 class ResourceDelegate(ResourceDelegateInterface):
     """
-    This class partially implements the ResourceDelegateInterface, providing
+    This class partially implemnts the ResourceDelegateInterface, providing
     common code for use by child classes that inherit from it.
     """
     def create(self, context, tenant_id, body):
@@ -187,10 +186,6 @@ class ResourceDelegate(ResourceDelegateInterface):
 def create_extension(delegate):
     """
     """
-    # for key, value in delegate.ATTRIBUTE_MAP.iteritems():
-    #    if key in attributes.RESOURCE_ATTRIBUTE_MAP:
-    #        pass # TODO(mark): should log that we're doing this
-    #     attributes.RESOURCE_ATTRIBUTE_MAP[key] = value
     return api_resource.Resource(base.Controller(ResourcePlugin(delegate),
                                                  delegate.collection_name,
                                                  delegate.resource_name,
