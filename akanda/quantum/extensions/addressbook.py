@@ -22,11 +22,11 @@ from quantum.extensions import extensions
 
 # Disabling until Mark's setup works
 #
-# from akanda.quantum.db import models_v2
-# from akanda.quantum.extensions import _authzbase
+from akanda.quantum.db import models_v2
+from akanda.quantum.extensions import _authzbase
 
-from quantum.db import models_v2
-from quantum.extensions import _authzbase
+# from quantum.db import models_v2
+# from quantum.extensions import _authzbase
 
 
 class AddressbookResource(_authzbase.ResourceDelegate):
