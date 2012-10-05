@@ -72,40 +72,34 @@ class ResourcePlugin(object):
                 self.delegate.model.tenant_id == context.tenant_id)
         return query
 
-    def _get_collection(self, context, filters=None, fields=None,
-                        verbose=None):
-        collection = self._model_query(context)
+    def _apply_filters_to_query(self, query, model, filters):
         if filters:
             for key, value in filters.iteritems():
-                column = getattr(self.delegate.model, key, None)
+                column = getattr(model, key, None)
                 if column:
-                    collection = collection.filter(column.in_(value))
+                    query = query.filter(column.in_(value))
+        return query
+
+    def _get_collection(self, context, filters=None, fields=None):
+        collection = self._model_query(context)
+        collection = self._apply_filters_to_query(collection,
+                                                  self.delegate.model,
+                                                  filters)
         return [self._fields(self.delegate.make_dict(c), fields) for c in
                 collection.all()]
 
-    def _get_by_id(self, context, id, verbose=None):
-        try:
-            query = self._model_query(context)
-            if verbose:
-                if verbose and isinstance(verbose, list):
-                    options = [orm.joinedload(join) for join in
-                               self.delegate.joins if join in verbose]
-                else:
-                    options = [orm.joinedload(join) for join in
-                               self.delegate.joins]
-                query = query.options(*options)
-            return query.filter_by(id=id).one()
-        except sa_exc.NoResultFound:
-            raise q_exc.NotFound()
+    def _get_by_id(self, context, id):
+        query = self._model_query(context)
+        return query.filter_by(id=id).one()
 
-    def _get_item(self, context, id, fields=None, verbose=None):
-        obj = self._get_by_id(context, id, verbose=verbose)
+    def _get_item(self, context, id, fields=None):
+        obj = self._get_by_id(context, id)
         return self._fields(self.delegate.make_dict(obj), fields)
 
     def _update_item(self, context, id, **kwargs):
         key = self.delegate.resource_name
         resource_dict = kwargs[key][key]
-        obj = self._get_by_id(context, id, verbose=cfg.verbose)
+        obj = self._get_by_id(context, id)
         return self.delegate.update(context, obj, resource_dict)
 
     def _create_item(self, context, **kwargs):
@@ -115,7 +109,7 @@ class ResourcePlugin(object):
         return self.delegate.create(context, tenant_id, resource_dict)
 
     def _delete_item(self, context, id):
-        obj = self._get_by_id(context, id, verbose=cfg.verbose)
+        obj = self._get_by_id(context, id)
         with context.session.begin():
             self.delegate.before_delete(obj)
             context.session.delete(obj)
