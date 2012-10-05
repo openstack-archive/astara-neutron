@@ -30,13 +30,144 @@ from sqlalchemy.orm import validates
 from quantum.api.v2 import attributes
 from quantum.common import utils
 from quantum.db import model_base
-from quantum.db import models_v2
 from quantum.openstack.common import timeutils
+
+class HasTenant(object):
+    """Tenant mixin, add to subclasses that have a tenant."""
+    # NOTE(jkoelker) tenant_id is just a free form string ;(
+    tenant_id = sa.Column(sa.String(255))
+
+
+class HasId(object):
+    """id mixin, add to subclasses that have an id."""
+    id = sa.Column(sa.String(36), primary_key=True, default=utils.str_uuid)
+
+
+class IPAvailabilityRange(model_base.BASEV2):
+    """Internal representation of available IPs for Quantum subnets.
+
+    Allocation - first entry from the range will be allocated.
+    If the first entry is equal to the last entry then this row
+    will be deleted.
+    Recycling ips involves appending to existing ranges. This is
+    only done if the range is contiguous. If not, the first_ip will be
+    the same as the last_ip. When adjacent ips are recycled the ranges
+    will be merged.
+
+    """
+    allocation_pool_id = sa.Column(sa.String(36),
+                                   sa.ForeignKey('ipallocationpools.id',
+                                                 ondelete="CASCADE"),
+                                   nullable=True,
+                                   primary_key=True)
+    first_ip = sa.Column(sa.String(64), nullable=False, primary_key=True)
+    last_ip = sa.Column(sa.String(64), nullable=False, primary_key=True)
+
+    def __repr__(self):
+        return "%s - %s" % (self.first_ip, self.last_ip)
+
+
+class IPAllocationPool(model_base.BASEV2, HasId):
+    """Representation of an allocation pool in a Quantum subnet."""
+
+    subnet_id = sa.Column(sa.String(36), sa.ForeignKey('subnets.id',
+                                                       ondelete="CASCADE"),
+                          nullable=True)
+    first_ip = sa.Column(sa.String(64), nullable=False)
+    last_ip = sa.Column(sa.String(64), nullable=False)
+    available_ranges = orm.relationship(IPAvailabilityRange,
+                                        backref='ipallocationpool',
+                                        lazy="dynamic")
+
+    def __repr__(self):
+        return "%s - %s" % (self.first_ip, self.last_ip)
+
+
+class IPAllocation(model_base.BASEV2):
+    """Internal representation of allocated IP addresses in a Quantum subnet.
+    """
+    port_id = sa.Column(sa.String(36), sa.ForeignKey('ports.id',
+                                                     ondelete="CASCADE"),
+                        nullable=True)
+    ip_address = sa.Column(sa.String(64), nullable=False, primary_key=True)
+    subnet_id = sa.Column(sa.String(36), sa.ForeignKey('subnets.id',
+                                                       ondelete="CASCADE"),
+                          nullable=False, primary_key=True)
+    network_id = sa.Column(sa.String(36), sa.ForeignKey("networks.id",
+                                                        ondelete="CASCADE"),
+                           nullable=False, primary_key=True)
+    expiration = sa.Column(sa.DateTime, nullable=True)
+
+
+class Port(model_base.BASEV2, HasId, HasTenant):
+    """Represents a port on a quantum v2 network."""
+    name = sa.Column(sa.String(255))
+    network_id = sa.Column(sa.String(36), sa.ForeignKey("networks.id"),
+                           nullable=False)
+    fixed_ips = orm.relationship(IPAllocation, backref='ports', lazy="dynamic")
+    mac_address = sa.Column(sa.String(32), nullable=False)
+    admin_state_up = sa.Column(sa.Boolean(), nullable=False)
+    status = sa.Column(sa.String(16), nullable=False)
+    device_id = sa.Column(sa.String(255), nullable=False)
+    device_owner = sa.Column(sa.String(255), nullable=False)
+
+
+class DNSNameServer(model_base.BASEV2):
+    """Internal representation of a DNS nameserver."""
+    address = sa.Column(sa.String(128), nullable=False, primary_key=True)
+    subnet_id = sa.Column(sa.String(36),
+                          sa.ForeignKey('subnets.id',
+                                        ondelete="CASCADE"),
+                          primary_key=True)
+
+
+class Route(model_base.BASEV2):
+    """Represents a route for a subnet or port."""
+    destination = sa.Column(sa.String(64), nullable=False, primary_key=True)
+    nexthop = sa.Column(sa.String(64), nullable=False, primary_key=True)
+    subnet_id = sa.Column(sa.String(36),
+                          sa.ForeignKey('subnets.id',
+                                        ondelete="CASCADE"),
+                          primary_key=True)
+
+
+class Subnet(model_base.BASEV2, HasId, HasTenant):
+    """Represents a quantum subnet.
+
+    When a subnet is created the first and last entries will be created. These
+    are used for the IP allocation.
+    """
+    name = sa.Column(sa.String(255))
+    network_id = sa.Column(sa.String(36), sa.ForeignKey('networks.id'))
+    ip_version = sa.Column(sa.Integer, nullable=False)
+    cidr = sa.Column(sa.String(64), nullable=False)
+    gateway_ip = sa.Column(sa.String(64))
+    allocation_pools = orm.relationship(IPAllocationPool,
+                                        backref='subnet',
+                                        lazy="dynamic")
+    enable_dhcp = sa.Column(sa.Boolean())
+    dns_nameservers = orm.relationship(DNSNameServer,
+                                       backref='subnet',
+                                       cascade='delete')
+    routes = orm.relationship(Route,
+                              backref='subnet',
+                              cascade='delete')
+    shared = sa.Column(sa.Boolean)
+
+
+class Network(model_base.BASEV2, HasId, HasTenant):
+    """Represents a v2 quantum network."""
+    name = sa.Column(sa.String(255))
+    ports = orm.relationship(Port, backref='networks')
+    subnets = orm.relationship(Subnet, backref='networks')
+    status = sa.Column(sa.String(16))
+    admin_state_up = sa.Column(sa.Boolean)
+    shared = sa.Column(sa.Boolean)
 
 
 # DreamHost PortFoward, Firewall(FilterRule), AddressBook models as
 # Quantum extensions
-class PortForward(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
+class PortForward(model_base.BASEV2, HasId, HasTenant):
     """Represents a PortForward extension"""
 
     name = sa.Column(sa.String(255))
@@ -91,8 +222,8 @@ class PortForward(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
         return port_id
 
 
-class AddressBookEntry(model_base.BASEV2, models_v2.HasId,
-                       models_v2.HasTenant):
+class AddressBookEntry(model_base.BASEV2, HasId,
+                       HasTenant):
     """Represents (part of) an AddressBook extension"""
 
     '''[murraju] __tablename__ seems to be needed for plural of models ending
@@ -113,11 +244,12 @@ class AddressBookEntry(model_base.BASEV2, models_v2.HasId,
         assert len(name) <= 255
         return name
 
-    #def validate_group_id(self, key, group_id):
-    #    retype = type(re.compile(attributes.UUID_PATTERN))
-    #    assert isinstance(re.compile(group_id), retype)
-    #    assert len(group_id) <= 36
-    #    return group_id
+    @validates('group_id')
+    def validate_group_id(self, key, group_id):
+       retype = type(re.compile(attributes.UUID_PATTERN))
+       assert isinstance(re.compile(group_id), retype)
+       assert len(group_id) <= 36
+       return group_id
 
     @validates('cidr')
     def validate_public_port(self, key, cidr):
@@ -126,15 +258,15 @@ class AddressBookEntry(model_base.BASEV2, models_v2.HasId,
         return cidr
 
 
-class AddressBookGroup(model_base.BASEV2, models_v2.HasId,
-                       models_v2.HasTenant):
+class AddressBookGroup(model_base.BASEV2, HasId,
+                       HasTenant):
     """Represents (part of) an AddressBook extension"""
 
     name = sa.Column(sa.String(255), nullable=False, primary_key=True)
-    book_id = sa.Column(
-        sa.String(36),
-        sa.ForeignKey('addressbooks.id', ondelete="CASCADE"),
-        nullable=False)
+    # book_id = sa.Column(
+    #     sa.String(36),
+    #     sa.ForeignKey('addressbooks.id', ondelete="CASCADE"),
+    #     nullable=False)
     entries = orm.relationship(AddressBookEntry, backref='groups',
                                lazy='dynamic')
 
@@ -145,40 +277,40 @@ class AddressBookGroup(model_base.BASEV2, models_v2.HasId,
         assert len(name) <= 255
         return name
 
-    @validates('book_id')
-    def validate_book_id(self, key, book_id):
-        retype = type(re.compile(attributes.UUID_PATTERN))
-        assert isinstance(re.compile(book_id), retype)
-        assert len(book_id) <= 36
-        return book_id
+    # @validates('book_id')
+    # def validate_book_id(self, key, book_id):
+    #     retype = type(re.compile(attributes.UUID_PATTERN))
+    #     assert isinstance(re.compile(book_id), retype)
+    #     assert len(book_id) <= 36
+    #     return book_id
 
 
-class AddressBook(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
-    """Represents (part of) an AddressBook extension"""
+# class AddressBook(model_base.BASEV2, HasId, HasTenant):
+#     """Represents (part of) an AddressBook extension"""
 
-    name = sa.Column(sa.String(255), nullable=False, primary_key=True)
-    groups = orm.relationship(AddressBookGroup, backref='book', lazy='dynamic')
+#     name = sa.Column(sa.String(255), nullable=False, primary_key=True)
+#     groups = orm.relationship(AddressBookGroup, backref='book', lazy='dynamic')
 
-    #AddressBook Model Validators using sqlalchamey simple validators
-    @validates('name')
-    def validate_name(self, key, name):
-        assert isinstance(name, basestring)
-        assert len(name) <= 255
-        return name
+#     #AddressBook Model Validators using sqlalchamey simple validators
+#     @validates('name')
+#     def validate_name(self, key, name):
+#         assert isinstance(name, basestring)
+#         assert len(name) <= 255
+#         return name
 
 
-class FilterRule(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
+class FilterRule(model_base.BASEV2, HasId, HasTenant):
     """Represents a FilterRule extension"""
 
     action = sa.Column(sa.String(6), nullable=False, primary_key=True)
     ip_version = sa.Column(sa.Integer, nullable=True)
     protocol = sa.Column(sa.String(4), nullable=False)
     source_alias = sa.Column(sa.String(36),
-                             sa.ForeignKey('addressbookentries.id'),
+                             sa.ForeignKey('addressbookgroups.id'),
                              nullable=False)
     source_port = sa.Column(sa.Integer, nullable=True)
     destination_alias = sa.Column(sa.String(36),
-                                  sa.ForeignKey('addressbookentries.id'),
+                                  sa.ForeignKey('addressbookgroups.id'),
                                   nullable=False)
     destination_port = sa.Column(sa.Integer, nullable=True)
     created_at = sa.Column(sa.DateTime, default=timeutils.utcnow,
@@ -237,7 +369,7 @@ class FilterRule(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
         return created_at
 
 
-class PortAlias(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
+class PortAlias(model_base.BASEV2, HasId, HasTenant):
     """A PortAlias Model used by Horizon. There is no
     need for a port alias extension and this is merely
     to satisfy a Horizon need to store alias information
