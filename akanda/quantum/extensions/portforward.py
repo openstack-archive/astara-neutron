@@ -18,10 +18,10 @@
 # @author: Mark Mcclain, New Dream Network, LLC (DreamHost)
 
 from quantum.api.v2 import attributes
-from quantum.db import models_v2
 from quantum.extensions import extensions
 
-from quantum.extensions import _authzbase
+from akanda.quantum.db import models_v2
+from akanda.quantum.extensions import _authzbase
 
 
 class PortforwardResource(_authzbase.ResourceDelegate):
