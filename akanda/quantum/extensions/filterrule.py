@@ -18,7 +18,10 @@
 # @author: Mark Mcclain, New Dream Network, LLC (DreamHost)
 
 from quantum.api.v2 import attributes
+from quantum.common import exceptions as q_exc
 from quantum.extensions import extensions
+from sqlalchemy.orm import exc
+
 
 from akanda.quantum.db import models_v2
 from akanda.quantum.extensions import _authzbase
@@ -38,45 +41,92 @@ class FilterruleResource(_authzbase.ResourceDelegate):
         'tenant_id': {'allow_post': True, 'allow_put': False,
                       'required_by_policy': True,
                       'is_visible': True},
-        'action': {'allow_post': True, 'allow_put': False,
+        'action': {'allow_post': True, 'allow_put': True,
                    'required_by_policy': True,
                    'is_visible': True},
         'protocol': {'allow_post': True, 'allow_put': False,
                      'required_by_policy': True,
                      'is_visible': True},
-        'source_alias': {'allow_post': True, 'allow_put': False,
-                         'required_by_policy': True,
-                         'is_visible': True},
+        'source_id': {'allow_post': True, 'allow_put': True,
+                      'default': None, 'is_visible': True},
         'source_port': {'allow_post': True, 'allow_put': False,
-                        'required_by_policy': True,
-                        'is_visible': True},
-        'destination_alias': {'allow_post': True, 'allow_put': False,
-                              'required_by_policy': True,
-                              'is_visible': True},
+                        'default': None, 'is_visible': True},
+        'destination_id': {'allow_post': True, 'allow_put': True,
+                           'is_visible': True},
         'destination_port': {'allow_post': True, 'allow_put': False,
-                             'required_by_policy': True,
                              'is_visible': True},
         'created_at': {'allow_post': False, 'allow_put': False,
-                       'required_by_policy': True,
                        'is_visible': True}
-
     }
+
+    def make_entry_dict(self, addressentry):
+        res = {
+            'id': addressentry['id'],
+            'tenant_id': addressentry['tenant_id'],
+            'name': addressentry['name'],
+            'cidr': addressentry['cidr']
+        }
+        return res
+
+    def make_abgroup_dict(self, addressgroup):
+        if addressgroup is None:
+            return
+
+        res = {
+            'id': addressgroup['id'],
+            'tenant_id': addressgroup['tenant_id'],
+            'name': addressgroup['name'],
+            'cidrs': [self.make_entry_dict(e)
+                      for e in addressgroup.entries]
+        }
+
+        return res
+
 
     def make_dict(self, filterrule):
         """
         Convert a filterrule model object to a dictionary.
         """
-        res = {'id': filterrule['id'],
-               'action': filterrule['action'],
-               'protocol': filterrule['protocol'],
-               'source_alias': filterrule['source_alias'],
-               'source_port': filterrule['source_port'],
-               'destination_alias': filterrule['destination_alias'],
-               'destination_port': filterrule['destination_port'],
-               'created_at': filterrule['created_at'],
-               'tenant_id': filterrule['tenant_id']}
+        res = {
+            'id': filterrule['id'],
+            'action': filterrule['action'],
+            'protocol': filterrule['protocol'],
+            'source': self.make_abgroup_dict(filterrule['source']),
+            'source_port': filterrule['source_port'],
+            'destination': self.make_abgroup_dict(filterrule['destination']),
+            'destination_port': filterrule['destination_port'],
+            'created_at': filterrule['created_at'],
+            'tenant_id': filterrule['tenant_id']}
         return res
 
+    def create(self, context, tenant_id, body):
+        with context.session.begin(subtransactions=True):
+            if 'source_id' in body:
+                self._owns_abgroup(context, tenant_id, body['source_id'])
+            if 'destination_id' in body:
+                self._owns_abgroup(context, tenant_id, body['destination_id'])
+            item = self.model(**body)
+            context.session.add(item)
+        return self.make_dict(item)
+
+
+    def _owns_abgroup(self, context, tenant_id, addressgroup_id):
+        #verify group_id is owned by tenant
+        if addressgroup_id is None:
+            return True
+
+        qry = context.session.query(models_v2.AddressGroup)
+        qry = qry.filter_by(tenant_id=tenant_id, id=addressgroup_id)
+
+        try:
+            group = qry.one()
+        except exc.NoResultFound:
+            msg = ("Tenant %(tenant_id)s does not have an address "
+                   "group with id %(group_id)s" %
+                   {'tenant_id': tenant_id, 'group_id': addressgroup_id})
+            raise q_exc.BadRequest(resource='filterrule', msg=msg)
+
+        return True
 
 _authzbase.register_quota('filterrule', 'quota_filterrule')
 
