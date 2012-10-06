@@ -20,14 +20,8 @@
 from quantum.api.v2 import attributes
 from quantum.extensions import extensions
 
-# Disabling until Mark's setup works
-#
-# from akanda.quantum.db import models_v2
-# from akanda.quantum.extensions import _authzbase
-
-
-from quantum.db import models_v2
-from quantum.extensions import _authzbase
+from akanda.quantum.db import models_v2
+from akanda.quantum.extensions import _authzbase
 
 
 class PortforwardResource(_authzbase.ResourceDelegate):
@@ -51,7 +45,7 @@ class PortforwardResource(_authzbase.ResourceDelegate):
         'tenant_id': {'allow_post': True, 'allow_put': False,
                       'required_by_policy': True,
                       'is_visible': True},
-        'instance_id': {'allow_post': True, 'allow_put': True,
+        'instance_id': {'allow_post': True, 'allow_put': False,
                         'required_by_policy': True,
                         'is_visible': True},
         'public_port': {'allow_post': True, 'allow_put': False,
