@@ -18,7 +18,9 @@
 # @author: Mark Mcclain, New Dream Network, LLC (DreamHost)
 
 from quantum.api.v2 import attributes
+from quantum.db import models_v2 as qmodels
 from quantum.extensions import extensions
+from sqlalchemy.orm import exc
 
 from akanda.quantum.db import models_v2
 from akanda.quantum.extensions import _authzbase
@@ -40,24 +42,38 @@ class PortforwardResource(_authzbase.ResourceDelegate):
         'name': {'allow_post': True, 'allow_put': True,
                  'default': '', 'is_visible': True},
         'protocol': {'allow_post': True, 'allow_put': False,
-                      'required_by_policy': True,
-                      'is_visible': True},
+                     'default': 'tcp',
+                     'is_visible': True},
         'tenant_id': {'allow_post': True, 'allow_put': False,
                       'required_by_policy': True,
                       'is_visible': True},
-        'instance_id': {'allow_post': True, 'allow_put': False,
+        'public_port': {'allow_post': True, 'allow_put': True,
                         'required_by_policy': True,
                         'is_visible': True},
-        'public_port': {'allow_post': True, 'allow_put': False,
-                        'required_by_policy': True,
-                        'is_visible': True},
-        'private_port': {'allow_post': True, 'allow_put': False,
-                         'required_by_policy': True,
-                         'is_visible': True},
-        'port_id': {'allow_post': True, 'allow_put': False,
-                     'required_by_policy': True,
-                     'is_visible': True}
+        'private_port': {'allow_post': True, 'allow_put': True,
+                         'default': None, 'is_visible': True},
+        'port_id': {'allow_post': True, 'allow_put': True,
+                    'validate': {'type:regex': attributes.UUID_PATTERN},
+                    'required_by_policy': True,
+                    'is_visible': True},
+        'port': {'allow_post': False, 'allow_put': False, 'is_visible': True}
     }
+
+    def make_port_dict(self, port):
+        res = {
+            'id': port['id'],
+            'name': port['name'],
+            'network_id': port['network_id'],
+            'tenant_id': port['tenant_id'],
+            'mac_address': port['mac_address'],
+            'admin_state_up': port['admin_state_up'],
+            'status': port['status'],
+            'fixed_ips': [{'subnet_id': ip['subnet_id'],
+                           'ip_address': ip['ip_address']}
+                          for ip in port['fixed_ips']],
+            'device_id': port['device_id'],
+            'device_owner': port['device_owner']
+        }
 
     def make_dict(self, portforward):
         """
@@ -66,12 +82,39 @@ class PortforwardResource(_authzbase.ResourceDelegate):
         res = {'id': portforward['id'],
                'name': portforward['name'],
                'protocol': portforward['protocol'],
-               'instance_id': portforward['instance_id'],
                'public_port': portforward['public_port'],
                'private_port': portforward['private_port'],
-               'port_id': portforward['port_id'],
+               'port': portforward['port_id'],
                'tenant_id': portforward['tenant_id']}
         return res
+
+    def create(self, context, tenant_id, body):
+        with context.session.begin(subtransactions=True):
+            #verify group_id is owned by tenant
+            qry = context.session.query(qmodels.Port)
+            qry = qry.filter_by(tenant_id=tenant_id, id=body.get('port_id'))
+
+            try:
+                port = qry.one()
+            except exc.NoResultFound:
+                msg = ("Tenant %(tenant_id) does not have an port "
+                       "with id %(group_id)s" %
+                       {'tenant_id': tenant_id, 'port_id': port_id})
+                raise q_exc.BadRequest(resource='addressentry', msg=msg)
+
+            item = self.model(**body)
+            if not item['private_port']:
+                item['private_port'] = item['public_port']
+            context.session.add(item)
+        return self.make_dict(item)
+
+    def update(self, context, tenant_id, resource, resource_dict):
+        with context.session.begin(subtransactions=True):
+            resource.update(resource_dict)
+            if not item['private_port']:
+                item['private_port'] = item['public_port']
+            context.session.add(resource)
+        return self.make_dict(resource)
 
 
 _authzbase.register_quota('portforward', 'quota_portforward')

@@ -18,18 +18,21 @@
 # @author: Mark Mcclain, New Dream Network, LLC (DreamHost)
 
 from quantum.api.v2 import attributes
+from quantum.common import exceptions as q_exc
 from quantum.extensions import extensions
+from sqlalchemy.orm import exc
+
 
 from akanda.quantum.db import models_v2
 from akanda.quantum.extensions import _authzbase
 
 
-class AddressbookResource(_authzbase.ResourceDelegate):
+class AddressGroupResource(_authzbase.ResourceDelegate):
     """
     """
-    model = models_v2.AddressBook
-    resource_name = 'addressbook'
-    collection_name = 'addressbooks'
+    model = models_v2.AddressGroup
+    resource_name = 'addressgroup'
+    collection_name = 'addressgroups'
 
     ATTRIBUTE_MAP = {
         'id': {'allow_post': False, 'allow_put': False,
@@ -38,36 +41,37 @@ class AddressbookResource(_authzbase.ResourceDelegate):
         'name': {'allow_post': True, 'allow_put': True,
                  'default': '', 'is_visible': True},
         'tenant_id': {'allow_post': True, 'allow_put': False,
+                      'required_by_policy': True,
                       'is_visible': True},
-        'groups': {'allow_post': False, 'allow_put': False,
+        'entries': {'allow_post': False, 'allow_put': False,
                    'is_visible': True}
     }
 
-    def make_dict(self, addressbook):
+    def make_dict(self, addressgroup):
         """
-        Convert a addressbook model object to a dictionary.
+        Convert a address model object to a dictionary.
         """
-        res = {'id': addressbook['id'],
-               'name': addressbook['name'],
-               'tenant_id': addressbook['tenant_id'],
-               'groups': [g['id'] for g in addressbook['groups']]}
+        res = {'id': addressgroup['id'],
+               'name': addressgroup['name'],
+               'tenant_id': addressgroup['tenant_id'],
+               'entries': [e['id'] for e in addressgroup['entries']]}
         return res
 
 
-_authzbase.register_quota('addressbook', 'quota_addressbook')
+_authzbase.register_quota('addressgroup', 'quota_addressgroup')
 
 
-class Addressbook(object):
+class Addressgroup(object):
     """
     """
     def get_name(self):
-        return "addressbook"
+        return "addressgroup"
 
     def get_alias(self):
-        return "dhaddressbook"
+        return "dhaddressgroup"
 
     def get_description(self):
-        return "An addressbook extension"
+        return "An addressgroup extension"
 
     def get_namespace(self):
         return 'http://docs.dreamcompute.com/api/ext/v1.0'
@@ -77,8 +81,8 @@ class Addressbook(object):
 
     def get_resources(self):
         return [extensions.ResourceExtension(
-            'dhaddressbook',
-            _authzbase.create_extension(AddressbookResource()))]
+            'dhaddressgroup',
+            _authzbase.create_extension(AddressGroupResource()))]
 
     def get_actions(self):
         return []
