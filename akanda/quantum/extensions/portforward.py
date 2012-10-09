@@ -108,7 +108,7 @@ class PortforwardResource(_authzbase.ResourceDelegate):
             context.session.add(item)
         return self.make_dict(item)
 
-    def update(self, context, tenant_id, resource, resource_dict):
+    def update(self, context, resource, resource_dict):
         with context.session.begin(subtransactions=True):
             resource.update(resource_dict)
             if not item['private_port']:

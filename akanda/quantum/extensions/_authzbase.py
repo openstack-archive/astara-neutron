@@ -147,7 +147,7 @@ class ResourceDelegateInterface(object):
         return ()
 
     @abc.abstractmethod
-    def update(self, context, tenant_id, resource, body):
+    def update(self, context, resource, body):
         pass
 
     @abc.abstractmethod
@@ -170,7 +170,7 @@ class ResourceDelegate(ResourceDelegateInterface):
             context.session.add(item)
         return self.make_dict(item)
 
-    def update(self, context, tenant_id, resource, resource_dict):
+    def update(self, context, resource, resource_dict):
         with context.session.begin(subtransactions=True):
             resource.update(resource_dict)
             context.session.add(resource)
