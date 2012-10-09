@@ -45,6 +45,13 @@ class AddressGroupResource(_authzbase.ResourceDelegate):
                    'is_visible': True}
     }
 
+    def make_entry_dict(self, addressentry):
+        return {'id': addressentry['id'],
+                'name': addressentry['name'],
+                'group_id': addressentry['group_id'],
+                'tenant_id': addressentry['tenant_id'],
+                'cidr': addressentry['cidr']}
+
     def make_dict(self, addressgroup):
         """
         Convert a address model object to a dictionary.
@@ -52,7 +59,8 @@ class AddressGroupResource(_authzbase.ResourceDelegate):
         res = {'id': addressgroup['id'],
                'name': addressgroup['name'],
                'tenant_id': addressgroup['tenant_id'],
-               'entries': [e['id'] for e in addressgroup['entries']]}
+               'entries': [make_entry_dict(e)
+                           for e in addressgroup['entries']]}
         return res
 
 
