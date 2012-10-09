@@ -19,10 +19,6 @@
 
 import abc
 
-from sqlalchemy import orm
-from sqlalchemy.orm import exc as sa_exc
-
-
 from quantum import quota
 from quantum.api.v2 import base
 from quantum.api.v2 import resource as api_resource
@@ -57,7 +53,7 @@ class ResourcePlugin(object):
             tenant_id = resource['tenant_id']
         elif ('tenant_id' in resource and
               resource['tenant_id'] != context.tenant_id):
-            reason = _('Cannot create resource for another tenant')
+            reason = 'Cannot create resource for another tenant'
             raise q_exc.AdminRequired(reason=reason)
         else:
             tenant_id = context.tenant_id

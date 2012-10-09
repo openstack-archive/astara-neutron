@@ -18,9 +18,7 @@
 # @author: Mark Mcclain, New Dream Network, LLC (DreamHost)
 
 from quantum.api.v2 import attributes
-from quantum.common import exceptions as q_exc
 from quantum.extensions import extensions
-from sqlalchemy.orm import exc
 
 
 from akanda.quantum.db import models_v2

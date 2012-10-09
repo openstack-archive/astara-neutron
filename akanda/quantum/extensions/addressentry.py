@@ -81,6 +81,7 @@ class AddressEntryResource(_authzbase.ResourceDelegate):
 
 _authzbase.register_quota('addressentry', 'quota_addressentry')
 
+
 class Addressentry(object):
     """
     """
