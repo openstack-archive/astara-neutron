@@ -82,7 +82,6 @@ class FilterruleResource(_authzbase.ResourceDelegate):
 
         return res
 
-
     def make_dict(self, filterrule):
         """
         Convert a filterrule model object to a dictionary.
@@ -109,7 +108,6 @@ class FilterruleResource(_authzbase.ResourceDelegate):
             context.session.add(item)
         return self.make_dict(item)
 
-
     def _owns_abgroup(self, context, tenant_id, addressgroup_id):
         #verify group_id is owned by tenant
         if addressgroup_id is None:
@@ -119,7 +117,7 @@ class FilterruleResource(_authzbase.ResourceDelegate):
         qry = qry.filter_by(tenant_id=tenant_id, id=addressgroup_id)
 
         try:
-            group = qry.one()
+            qry.one()
         except exc.NoResultFound:
             msg = ("Tenant %(tenant_id)s does not have an address "
                    "group with id %(group_id)s" %

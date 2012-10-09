@@ -17,10 +17,12 @@
 # @author: Murali Raju, New Dream Network, LLC (DreamHost)
 # @author: Mark Mcclain, New Dream Network, LLC (DreamHost)
 
+from sqlalchemy.orm import exc
+
 from quantum.api.v2 import attributes
+from quantum.common import exceptions as q_exc
 from quantum.db import models_v2 as qmodels
 from quantum.extensions import extensions
-from sqlalchemy.orm import exc
 
 from akanda.quantum.db import models_v2
 from akanda.quantum.extensions import _authzbase
@@ -60,7 +62,7 @@ class PortforwardResource(_authzbase.ResourceDelegate):
     }
 
     def make_port_dict(self, port):
-        res = {
+        return {
             'id': port['id'],
             'name': port['name'],
             'network_id': port['network_id'],
@@ -73,7 +75,7 @@ class PortforwardResource(_authzbase.ResourceDelegate):
                           for ip in port['fixed_ips']],
             'device_id': port['device_id'],
             'device_owner': port['device_owner']
-        }
+            }
 
     def make_dict(self, portforward):
         """
@@ -95,11 +97,13 @@ class PortforwardResource(_authzbase.ResourceDelegate):
             qry = qry.filter_by(tenant_id=tenant_id, id=body.get('port_id'))
 
             try:
-                port = qry.one()
+                qry.one()
             except exc.NoResultFound:
                 msg = ("Tenant %(tenant_id) does not have an port "
                        "with id %(group_id)s" %
-                       {'tenant_id': tenant_id, 'port_id': port_id})
+                       {'tenant_id': tenant_id,
+                        'port_id': body.get('port_id'),
+                        })
                 raise q_exc.BadRequest(resource='addressentry', msg=msg)
 
             item = self.model(**body)
@@ -111,6 +115,8 @@ class PortforwardResource(_authzbase.ResourceDelegate):
     def update(self, context, resource, resource_dict):
         with context.session.begin(subtransactions=True):
             resource.update(resource_dict)
+            # FIXME(dhellmann): This variable is undefined
+            # but I don't know what it should have been.
             if not item['private_port']:
                 item['private_port'] = item['public_port']
             context.session.add(resource)
