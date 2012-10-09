@@ -41,7 +41,7 @@ class PortforwardResource(_authzbase.ResourceDelegate):
                'is_visible': True},
         'name': {'allow_post': True, 'allow_put': True,
                  'default': '', 'is_visible': True},
-        'protocol': {'allow_post': True, 'allow_put': False,
+        'protocol': {'allow_post': True, 'allow_put': True,
                      'default': 'tcp',
                      'is_visible': True},
         'tenant_id': {'allow_post': True, 'allow_put': False,
