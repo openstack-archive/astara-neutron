@@ -86,7 +86,7 @@ class PortforwardResource(_authzbase.ResourceDelegate):
                'protocol': portforward['protocol'],
                'public_port': portforward['public_port'],
                'private_port': portforward['private_port'],
-               'port': portforward['port_id'],
+               'port': self.make_port_dict(portforward['port']),
                'tenant_id': portforward['tenant_id']}
         return res
 
