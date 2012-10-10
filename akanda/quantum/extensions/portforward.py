@@ -117,8 +117,8 @@ class PortforwardResource(_authzbase.ResourceDelegate):
             resource.update(resource_dict)
             # FIXME(dhellmann): This variable is undefined
             # but I don't know what it should have been.
-            if not item['private_port']:
-                item['private_port'] = item['public_port']
+            if not resource['private_port']:
+                resource['private_port'] = resource['public_port']
             context.session.add(resource)
         return self.make_dict(resource)
 

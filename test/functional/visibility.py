@@ -11,8 +11,6 @@ class AkandaClientWrapper(client.Client):
     portalias_path = '/dhportalias'
     portforward_path = '/dhportforward'
 
-    
-
     # portalias crud
     @client.APIParamsCall
     def list_portalias(self, **params):
@@ -209,7 +207,7 @@ class VisibilityTest(unittest.TestCase):
 
 
 class CanSeeTestCaseMixin(object):
-    
+
     def test_addressgroup(self):
         ag = self.c.show_addressgroup(self.group['addressgroup']['id'])
         assert ag
