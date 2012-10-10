@@ -45,6 +45,10 @@ class PortForward(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
         sa.ForeignKey('ports.id', ondelete="CASCADE"),
         nullable=True)
     private_port = sa.Column(sa.Integer, nullable=True)
+    port = orm.relationship(models_v2.Port,
+                             backref=orm.backref('forwards',
+                                                 cascade='all,delete'))
+
 
     @validates('name')
     def validate_name(self, key, name):
