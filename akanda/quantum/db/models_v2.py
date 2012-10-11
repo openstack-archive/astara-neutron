@@ -49,7 +49,6 @@ class PortForward(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
                              backref=orm.backref('forwards',
                                                  cascade='all,delete'))
 
-
     @validates('name')
     def validate_name(self, key, name):
         assert isinstance(name, basestring)

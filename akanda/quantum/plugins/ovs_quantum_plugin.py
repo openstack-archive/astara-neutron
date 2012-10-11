@@ -31,6 +31,7 @@ akanda_opts = [
 cfg.CONF.register_opts(akanda_opts)
 
 
+
 class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
     supported_extension_aliases = (
         ovs_quantum_plugin.OVSQuantumPluginV2.supported_extension_aliases +
