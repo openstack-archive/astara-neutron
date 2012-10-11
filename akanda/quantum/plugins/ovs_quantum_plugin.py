@@ -62,7 +62,8 @@ class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
                     break
             else:
                 reason = _('Cannot create a subnet that is not within the '
-                           'RFC1918 or RFC4193 address space.')
+                           'allowed address ranges [%s].' %
+                           cfg.CONF.akanda_allowed_cidr_ranges)
                 raise q_exc.AdminRequired(reason=reason)
 
         retval = super(OVSQuantumPluginV2, self).create_subnet(context, subnet)
@@ -132,31 +133,24 @@ class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
             self.update_port(context.elevated(),
                              port['id'],
                              {'port': port})
-            return True
+        return True
 
     def _akanda_add_ipv6_subnet(self, context, network):
-        net = netaddr.IPNetwork(cfg.CONF.akanda_ipv6_tenant_range)
-        prefixlen = cfg.CONF.akanda_ipv6_prefix_length
-        if net.version != 6:
-            LOG.error('Tenant range is not a valid IPv6 cidr')
-            return
 
-        bits_needed = prefixlen - net.prefixlen
-        if 128 < bits_needed > 0:
-            LOG.error('Tenant master net must be larger than the prefixlen')
+        try:
+            subnet_generator = _ipv6_subnet_generator(
+                cfg.CONF.akanda_ipv6_tenant_range,
+                cfg.CONF.akanda_ipv6_prefix_length)
+        except:
+            LOG.exception('Unable able to add tenant IPv6 subnet.')
             return
 
         remaining = IPV6_ASSIGNMENT_ATTEMPTS
-        rand = random.SystemRandom()
 
         while remaining:
             remaining -=1
 
-            rand_bits = rand.randint(0, 2**bits_needed)
-
-            candidate_cidr = netaddr.IPNetwork(
-                netaddr.IPAddress(net.value + (rand_bits << prefixlen)))
-            candidate_cidr.prefixlen = prefixlen
+            candidate_cidr = subnet_generator.next()
 
             sub_q = context.session.query(qmodels.Subnet)
             sub_q = sub_q.filter_by(cidr=str(candidate_cidr))
@@ -177,3 +171,28 @@ class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
                 break
         else:
             LOG.error('Unable to generate a unique tenant subnet cidr')
+
+def _ip6_subnet_generator(network_range, prefixlen):
+    # coerce prefixlen to stay within bounds
+    prefixlen = min(128, prefixlen)
+
+    net = netaddr.IPNetwork(network_range)
+    if net.version != 6:
+        raise ValueError('Tenant range %s is not a valid IPv6 cidr' %
+                         network_range)
+
+    if prefixlen < net.prefixlen:
+        raise ValueError('Prefixlen (/%d) must be larger than the network '
+                         'range prefixlen (/%s)' % (prefixlen, net.prefixlen))
+
+    rand = random.SystemRandom()
+    max_range = 2**(prefixlen - net.prefixlen)
+
+    while True:
+        rand_bits = rand.randint(0, max_range)
+
+        candidate_cidr = netaddr.IPNetwork(
+                netaddr.IPAddress(net.value + (rand_bits << prefixlen)))
+        candidate_cidr.prefixlen = prefixlen
+
+        yield candidate_cidr
