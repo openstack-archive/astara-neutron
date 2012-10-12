@@ -18,6 +18,7 @@
 
 
 from quantum.api.v2 import attributes
+from quantum.common import exceptions
 from quantum.extensions import extensions
 
 from akanda.quantum.db import models_v2
@@ -62,6 +63,39 @@ class PortaliasResource(_authzbase.ResourceDelegate):
                'port': portalias['port'],
                'tenant_id': portalias['tenant_id']}
         return res
+
+    def before_delete(self, resource):
+        if resource.port == 0:
+            # FIXME(dhellmann): This will apply if the user creates
+            # any of their own aliases with a zero port.
+            raise exceptions.PolicyNotAuthorized(
+                action='modification of system port aliases.'
+                )
+        return super(PortaliasResource, self).before_delete(resource)
+
+    def update(self, context, resource, resource_dict):
+        if resource.port == 0:
+            # FIXME(dhellmann): This will apply if the user creates
+            # any of their own aliases with a zero port.
+            raise exceptions.PolicyNotAuthorized(
+                action='deletion of system port aliases.'
+                )
+        return super(PortaliasResource, self).update(context,
+                                                     resource,
+                                                     resource_dict,
+                                                     )
+
+    def create(self, context, tenant_id, body):
+        if body.get('port') == 0:
+            # FIXME(dhellmann): This will apply if the user creates
+            # any of their own aliases with a zero port.
+            raise exceptions.PolicyNotAuthorized(
+                action='creation wildcard port aliases'
+                )
+        return super(PortaliasResource, self).create(context,
+                                                     tenant_id,
+                                                     body
+                                                     )
 
 
 _authzbase.register_quota('portalias', 'quota_portalias')
