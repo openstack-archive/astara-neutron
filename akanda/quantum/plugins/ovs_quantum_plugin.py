@@ -30,6 +30,19 @@ akanda_opts = [
 
 cfg.CONF.register_opts(akanda_opts)
 
+# Provide a list of the default port aliases to be
+# created for a user account.
+# FIXME(dhellmann): This list should come from
+# a configuration file somewhere.
+DEFAULT_PORT_ALIASES = [
+    ('tcp', 0, 'Any TCP'),
+    ('udp', 0, 'Any UDP'),
+    ('tcp', 22, 'ssh'),
+    ('udp', 53, 'DNS'),
+    ('tcp', 80, 'HTTP'),
+    ('tcp', 443, 'HTTPS'),
+    ]
+
 
 class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
     supported_extension_aliases = (
@@ -177,13 +190,13 @@ class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
             LOG.error('Unable to generate a unique tenant subnet cidr')
 
     def _akanda_auto_add_port_aliases(self, context):
-        """Create 'Any TCP' and 'Any UDP' port aliases
-        if they don't already exist.
+        """Create the default port aliases for the current tenant, if
+        they don't already exist.
         """
-        for protocol in ['tcp', 'udp']:
+        for protocol, port, name in DEFAULT_PORT_ALIASES:
             pa_q = context.session.query(akmodels.PortAlias)
             pa_q = pa_q.filter_by(tenant_id=context.tenant_id,
-                                  port='0',
+                                  port=port,
                                   protocol=protocol,
                                   )
             try:
@@ -191,9 +204,9 @@ class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
             except exc.NoResultFound:
                 with context.session.begin(subtransactions=True):
                     alias = akmodels.PortAlias(
-                        name='Any %s' % protocol.upper(),
+                        name=name,
                         protocol=protocol,
-                        port=0,
+                        port=port,
                         tenant_id=context.tenant_id,
                         )
                     context.session.add(alias)
