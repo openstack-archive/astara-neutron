@@ -54,7 +54,7 @@ class FilterruleResource(_authzbase.ResourceDelegate):
         'source_port': {'allow_post': True, 'allow_put': True,
                         'default': None, 'is_visible': True},
         'destination_id': {'allow_post': True, 'allow_put': True,
-                           'default': 'is_visible': True},
+                           'default': None, 'is_visible': True},
         'destination': {'allow_post': False, 'allow_put': False,
                         'default': None, 'is_visible': True},
         'destination_port': {'allow_post': True, 'allow_put': True,
@@ -104,9 +104,9 @@ class FilterruleResource(_authzbase.ResourceDelegate):
 
     def create(self, context, tenant_id, body):
         with context.session.begin(subtransactions=True):
-            if 'source_id' in body:
+            if body.get('source_id'):
                 self._owns_abgroup(context, tenant_id, body['source_id'])
-            if 'destination_id' in body:
+            if body.get('destination_id'):
                 self._owns_abgroup(context, tenant_id, body['destination_id'])
             item = self.model(**body)
             context.session.add(item)

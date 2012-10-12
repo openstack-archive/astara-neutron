@@ -59,7 +59,7 @@ class AddressGroupResource(_authzbase.ResourceDelegate):
         res = {'id': addressgroup['id'],
                'name': addressgroup['name'],
                'tenant_id': addressgroup['tenant_id'],
-               'entries': [make_entry_dict(e)
+               'entries': [self.make_entry_dict(e)
                            for e in addressgroup['entries']]}
         return res
 
