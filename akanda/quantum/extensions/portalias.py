@@ -90,7 +90,7 @@ class PortaliasResource(_authzbase.ResourceDelegate):
             # FIXME(dhellmann): This will apply if the user creates
             # any of their own aliases with a zero port.
             raise exceptions.PolicyNotAuthorized(
-                action='creation wildcard port aliases'
+                action='creation of wildcard port aliases'
                 )
         return super(PortaliasResource, self).create(context,
                                                      tenant_id,

@@ -19,6 +19,7 @@
 
 from quantum.api.v2 import attributes
 from quantum.extensions import extensions
+from quantum.common import exceptions
 
 
 from akanda.quantum.db import models_v2
@@ -63,6 +64,34 @@ class AddressGroupResource(_authzbase.ResourceDelegate):
                            for e in addressgroup['entries']]}
         return res
 
+    def create(self, context, tenant_id, body):
+        if body.get('name', '').lower() == 'any':
+            raise exceptions.PolicyNotAuthorized(
+                action='creation of wildcard address groups'
+                )
+        return super(AddressGroupResource, self).create(
+            context,
+            tenant_id,
+            body,
+            )
+
+    def update(self, context, resource, resource_dict):
+        if resource.name == 'Any':
+            raise exceptions.PolicyNotAuthorized(
+                action='modification of system address groups'
+                )
+        return super(AddressGroupResource, self).update(
+            context,
+            resource,
+            resource_dict,
+            )
+
+    def before_delete(self, resource):
+        if resource.name == 'Any':
+            raise exceptions.PolicyNotAuthorized(
+                action='modification of system address groups'
+                )
+        return super(AddressGroupResource, self).before_delete(resource)
 
 _authzbase.register_quota('addressgroup', 'quota_addressgroup')
 
