@@ -62,9 +62,10 @@ class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
                 if net in netaddr.IPNetwork(allowed_cidr):
                     break
             else:
-                reason = _('Cannot create a subnet that is not within the '
+                reason = ('Cannot create a subnet that is not within the '
                            'allowed address ranges [%s].' %
                            cfg.CONF.akanda_allowed_cidr_ranges)
+                #FIXME(rods):  enable internationalization for this message
                 raise q_exc.AdminRequired(reason=reason)
 
         retval = super(OVSQuantumPluginV2, self).create_subnet(context, subnet)
@@ -149,7 +150,7 @@ class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
         remaining = IPV6_ASSIGNMENT_ATTEMPTS
 
         while remaining:
-            remaining -=1
+            remaining -= 1
 
             candidate_cidr = subnet_generator.next()
 
@@ -173,7 +174,7 @@ class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
         else:
             LOG.error('Unable to generate a unique tenant subnet cidr')
 
-def _ip6_subnet_generator(network_range, prefixlen):
+def _ipv6_subnet_generator(network_range, prefixlen):
     # coerce prefixlen to stay within bounds
     prefixlen = min(128, prefixlen)
 
