@@ -20,18 +20,21 @@
 
 from datetime import datetime
 import netaddr
-import re
 
 import sqlalchemy as sa
 from sqlalchemy import orm
 from sqlalchemy.orm import validates
 
 
-from quantum.api.v2 import attributes
-from quantum.common import utils
 from quantum.db import model_base
 from quantum.db import models_v2
 from quantum.openstack.common import timeutils
+
+
+def validate_port_number(port):
+    """Ensures the port number is within the valid range.
+    """
+    assert 0 <= port <= 65536
 
 
 class PortForward(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
@@ -64,14 +67,14 @@ class PortForward(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
     @validates('public_port')
     def validate_public_port(self, key, public_port):
         public_port = int(public_port)
-        assert 0 < public_port <= 65536
+        validate_port_number(public_port)
         return public_port
 
     @validates('private_port')
     def validate_private_port(self, key, private_port):
         if private_port is not None:
             private_port = int(private_port)
-            assert 0 < private_port <= 65536
+            validate_port_number(private_port)
         return private_port
 
 
@@ -167,14 +170,14 @@ class FilterRule(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
     def validate_source_port(self, key, source_port):
         if source_port is not None:
             source_port = int(source_port)
-            assert 0 < source_port <= 65536
+            validate_port_number(source_port)
         return source_port
 
     @validates('destination_port')
     def validate_destination_port(self, key, destination_port):
         if destination_port is not None:
             destination_port = int(destination_port)
-            assert 0 < destination_port <= 65536
+            validate_port_number(destination_port)
         return destination_port
 
     @validates('created_at')
@@ -209,5 +212,5 @@ class PortAlias(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
     @validates('port')
     def validate_port(self, key, port):
         port = int(port)
-        assert 0 < port <= 65536
+        validate_port_number(port)
         return port

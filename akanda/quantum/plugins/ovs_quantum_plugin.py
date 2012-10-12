@@ -42,6 +42,10 @@ class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
                                                                 network)
         # auto create IPv6 network
         self._akanda_add_ipv6_subnet(context, retval)
+
+        # auto-create port aliases and address groups for
+        # use in firewall rules and port forwarding rules
+        self._akanda_auto_add_port_aliases(context)
         return retval
 
     def update_network(self, context, id, network):
@@ -171,6 +175,30 @@ class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
                 break
         else:
             LOG.error('Unable to generate a unique tenant subnet cidr')
+
+    def _akanda_auto_add_port_aliases(self, context):
+        """Create 'Any TCP' and 'Any UDP' port aliases
+        if they don't already exist.
+        """
+        for protocol in ['tcp', 'udp']:
+            pa_q = context.session.query(akmodels.PortAlias)
+            pa_q = pa_q.filter_by(tenant_id=context.tenant_id,
+                                  port='0',
+                                  protocol=protocol,
+                                  )
+            try:
+                pa_q.one()
+            except exc.NoResultFound:
+                with context.session.begin(subtransactions=True):
+                    alias = akmodels.PortAlias(
+                        name='Any %s' % protocol.upper(),
+                        protocol=protocol,
+                        port=0,
+                        tenant_id=context.tenant_id,
+                        )
+                    context.session.add(alias)
+                    LOG.debug('Created default port alias %s', alias.name)
+        return
 
 
 def _ipv6_subnet_generator(network_range, prefixlen):
