@@ -31,13 +31,11 @@ akanda_opts = [
 cfg.CONF.register_opts(akanda_opts)
 
 
-
 class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
     supported_extension_aliases = (
         ovs_quantum_plugin.OVSQuantumPluginV2.supported_extension_aliases +
         ["dhportforward", "dhaddressgroup", "dhaddressentry",
          "dhfilterrule", "dhportalias"])
-
 
     def create_network(self, context, network):
         retval = super(OVSQuantumPluginV2, self).create_network(context,
@@ -174,6 +172,7 @@ class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
         else:
             LOG.error('Unable to generate a unique tenant subnet cidr')
 
+
 def _ipv6_subnet_generator(network_range, prefixlen):
     # coerce prefixlen to stay within bounds
     prefixlen = min(128, prefixlen)
@@ -188,7 +187,7 @@ def _ipv6_subnet_generator(network_range, prefixlen):
                          'range prefixlen (/%s)' % (prefixlen, net.prefixlen))
 
     rand = random.SystemRandom()
-    max_range = 2**(prefixlen - net.prefixlen)
+    max_range = 2 ** (prefixlen - net.prefixlen)
 
     while True:
         rand_bits = rand.randint(0, max_range)
