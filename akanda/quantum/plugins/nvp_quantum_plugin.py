@@ -32,10 +32,10 @@ cfg.CONF.register_opts(akanda_opts)
 
 
 
-class NVPQuantumPlugin(nvp.NvpPluginV2):
+class NVPQuantumPlugin(nvp.NvpPluginV2, l3_db.L3_NAT_db_mixin):
     supported_extension_aliases = [
         "dhportforward", "dhaddressgroup", "dhaddressentry",
-        "dhfilterrule", "dhportalias"]
+        "dhfilterrule", "dhportalias", "router"]
 
 
     def create_network(self, context, network):
