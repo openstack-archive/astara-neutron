@@ -33,24 +33,44 @@ cfg.CONF.register_opts(akanda_opts)
 
 
 class NVPQuantumPlugin(nvp.NvpPluginV2, l3_db.L3_NAT_db_mixin):
-    supported_extension_aliases = [
-        "dhportforward", "dhaddressgroup", "dhaddressentry",
-        "dhfilterrule", "dhportalias", "router"]
-
+    supported_extension_aliases = (
+        nvp.NvpPluginV2.supported_extension_aliases +
+        ['router', 'dhportforward', 'dhaddressgroup', 'dhaddressentry',
+         'dhfilterrule', 'dhportalias'])
 
     def create_network(self, context, network):
-        retval = super(NVPQuantumPlugin, self).create_network(context,
-                                                                network)
-        # auto create IPv6 network
-        self._akanda_add_ipv6_subnet(context, retval)
-        return retval
+        with context.session.begin(subtransactions=True):
+            net = super(NVPQuantumPlugin, self).create_network(context,
+                                                               network)
+            self._process_l3_create(context, network['network'], net['id'])
+            self._extend_network_dict_l3(context, net)
+            # auto create IPv6 network
+            self._akanda_add_ipv6_subnet(context, net)
+        return net
 
     def update_network(self, context, id, network):
-        retval = super(NVPQuantumPlugin, self).update_network(context,
-                                                                id,
-                                                                network)
+        with context.session.begin(subtransactions=True):
+            net = super(NVPQuantumPlugin, self).update_network(context,
+                                                               id,
+                                                               network)
+            self._process_l3_update(context, network['network'], id)
+            self._extend_network_dict_l3(context, net)
         # TODO: need to remove ports from router when state is down?
-        return retval
+        return net
+
+    def get_network(self, context, id, fields=None):
+        net = super(NVPQuantumPlugin, self).get_network(context, id, None)
+        self._extend_network_dict_l3(context, net)
+        return self._fields(net, fields)
+
+    def get_networks(self, context, filters=None, fields=None):
+        nets = super(NVPQuantumPlugin, self).get_networks(context,
+                                                          filters,
+                                                          None)
+        for net in nets:
+            self._extend_network_dict_l3(context, net)
+        nets = self._filter_nets_l3(context, nets, filters)
+        return [self._fields(net, fields) for net in nets]
 
     def create_subnet(self, context, subnet):
         # ensure cidr is allowed v4:RFC1918 v6:ULA for non-admins
@@ -86,6 +106,12 @@ class NVPQuantumPlugin(nvp.NvpPluginV2, l3_db.L3_NAT_db_mixin):
         # remove port from router first
 
         return super(NVPQuantumPlugin, self).delete_subnet(context, id)
+
+    def delete_port(self, context, id, l3_port_check=True):
+        if l3_port_check:
+            self.prent_l3_port_deletion(context, id)
+        self.disassociate_floatingips(context, id)
+        return super(NVPQuantumPluginV2, self).delete_port(context, id)
 
     def _akanda_auto_add_subnet_to_router(self, context, subnet):
         if context.is_admin:
@@ -172,7 +198,7 @@ class NVPQuantumPlugin(nvp.NvpPluginV2, l3_db.L3_NAT_db_mixin):
         else:
             LOG.error('Unable to generate a unique tenant subnet cidr')
 
-def _ip6_subnet_generator(network_range, prefixlen):
+def _ipv6_subnet_generator(network_range, prefixlen):
     # coerce prefixlen to stay within bounds
     prefixlen = min(128, prefixlen)
 
