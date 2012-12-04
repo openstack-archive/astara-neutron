@@ -17,8 +17,8 @@
 # @author: Murali Raju, New Dream Network, LLC (DreamHost)
 # @author: Mark Mcclain, New Dream Network, LLC (DreamHost)
 
+from quantum.api import extensions
 from quantum.api.v2 import attributes
-from quantum.extensions import extensions
 from quantum.common import exceptions
 
 

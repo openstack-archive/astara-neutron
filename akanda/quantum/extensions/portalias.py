@@ -17,9 +17,9 @@
 # @author: Murali Raju, New Dream Network, LLC (DreamHost)
 
 
+from quantum.api import extensions
 from quantum.api.v2 import attributes
 from quantum.common import exceptions
-from quantum.extensions import extensions
 
 from akanda.quantum.db import models_v2
 from akanda.quantum.extensions import _authzbase

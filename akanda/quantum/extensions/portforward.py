@@ -19,10 +19,10 @@
 
 from sqlalchemy.orm import exc
 
+from quantum.api import extensions
 from quantum.api.v2 import attributes
 from quantum.common import exceptions as q_exc
 from quantum.db import models_v2 as qmodels
-from quantum.extensions import extensions
 
 from akanda.quantum.db import models_v2
 from akanda.quantum.extensions import _authzbase
