@@ -109,9 +109,9 @@ class NVPQuantumPlugin(nvp.NvpPluginV2, l3_db.L3_NAT_db_mixin):
 
     def delete_port(self, context, id, l3_port_check=True):
         if l3_port_check:
-            self.prent_l3_port_deletion(context, id)
+            self.prevent_l3_port_deletion(context, id)
         self.disassociate_floatingips(context, id)
-        return super(NVPQuantumPluginV2, self).delete_port(context, id)
+        return super(NVPQuantumPlugin, self).delete_port(context, id)
 
     def _akanda_auto_add_subnet_to_router(self, context, subnet):
         if context.is_admin:
@@ -151,15 +151,19 @@ class NVPQuantumPlugin(nvp.NvpPluginV2, l3_db.L3_NAT_db_mixin):
             for fixed_ip in port['fixed_ips']:
                 if fixed_ip['subnet_id'] == subnet['id']:
                     fixed_ip['ip_address'] = subnet['gateway_ip']
-                    break
-            else:
-                port['fixed_ips'].append({'subnet_id': subnet['id'],
-                                          'ip_address': subnet['gateway_ip']})
-
+                    self.update_port(context.elevated(),
+                                     port['id'],
+                                     {'port': port})
+                    return True
+        if ports:
+            # append subnet to first port
+            port = ports[0]
+            port['fixed_ips'].append({'subnet_id': subnet['id'],
+                                      'ip_address': subnet['gateway_ip']})
             self.update_port(context.elevated(),
                              port['id'],
                              {'port': port})
-        return True
+            return True
 
     def _akanda_add_ipv6_subnet(self, context, network):
 
