@@ -75,7 +75,7 @@ class PortforwardResource(_authzbase.ResourceDelegate):
                           for ip in port['fixed_ips']],
             'device_id': port['device_id'],
             'device_owner': port['device_owner']
-            }
+        }
 
     def make_dict(self, portforward):
         """

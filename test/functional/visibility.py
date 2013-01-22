@@ -248,7 +248,7 @@ class SameUserTest(VisibilityTest, CanSeeTestCaseMixin):
             auth_url='http://localhost:5000/v2.0/',
             auth_strategy='keystone',
             auth_region='RegionOne',
-            )
+        )
 
 
 class DifferentUserSameTenantTest(VisibilityTest, CanSeeTestCaseMixin):
@@ -264,7 +264,7 @@ class DifferentUserSameTenantTest(VisibilityTest, CanSeeTestCaseMixin):
             auth_url='http://localhost:5000/v2.0/',
             auth_strategy='keystone',
             auth_region='RegionOne',
-            )
+        )
 
 
 class DifferentTenantTest(VisibilityTest):
@@ -280,7 +280,7 @@ class DifferentTenantTest(VisibilityTest):
             auth_url='http://localhost:5000/v2.0/',
             auth_strategy='keystone',
             auth_region='RegionOne',
-            )
+        )
 
     def _check_one(self, one, lister):
         response = lister()

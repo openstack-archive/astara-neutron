@@ -45,11 +45,11 @@ class PortaliasResource(_authzbase.ResourceDelegate):
                       'required_by_policy': True,
                       'is_visible': True},
         'protocol': {'allow_post': True, 'allow_put': True,
-                      'required_by_policy': True,
-                      'is_visible': True},
+                     'required_by_policy': True,
+                     'is_visible': True},
         'port': {'allow_post': True, 'allow_put': True,
-                      'required_by_policy': True,
-                      'is_visible': True},
+                 'required_by_policy': True,
+                 'is_visible': True},
 
     }
 
@@ -70,7 +70,7 @@ class PortaliasResource(_authzbase.ResourceDelegate):
             # any of their own aliases with a zero port.
             raise exceptions.PolicyNotAuthorized(
                 action='modification of system port aliases.'
-                )
+            )
         return super(PortaliasResource, self).before_delete(resource)
 
     def update(self, context, resource, resource_dict):
@@ -79,7 +79,7 @@ class PortaliasResource(_authzbase.ResourceDelegate):
             # any of their own aliases with a zero port.
             raise exceptions.PolicyNotAuthorized(
                 action='deletion of system port aliases.'
-                )
+            )
         return super(PortaliasResource, self).update(context,
                                                      resource,
                                                      resource_dict,
@@ -91,7 +91,7 @@ class PortaliasResource(_authzbase.ResourceDelegate):
             # any of their own aliases with a zero port.
             raise exceptions.PolicyNotAuthorized(
                 action='creation of wildcard port aliases'
-                )
+            )
         return super(PortaliasResource, self).create(context,
                                                      tenant_id,
                                                      body

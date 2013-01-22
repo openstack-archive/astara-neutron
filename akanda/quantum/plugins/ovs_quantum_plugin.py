@@ -23,7 +23,8 @@ akanda_opts = [
     cfg.IntOpt('akanda_ipv6_prefix_length',
                default=64,
                help='Default length of prefix to pre-assign'),
-    cfg.ListOpt('akanda_allowed_cidr_ranges',
+    cfg.ListOpt(
+        'akanda_allowed_cidr_ranges',
         default=['10.0.0.8/8', '172.16.0.0/12', '192.168.0.0/16', 'fc00::/7'],
         help='List of allowed subnet cidrs for non-admin users')
 ]
@@ -41,7 +42,7 @@ DEFAULT_PORT_ALIASES = [
     ('udp', 53, 'DNS'),
     ('tcp', 80, 'HTTP'),
     ('tcp', 443, 'HTTPS'),
-    ]
+]
 
 # Provide a list of the default address entries
 # to be created for a tenant.
@@ -49,7 +50,7 @@ DEFAULT_PORT_ALIASES = [
 # a configuration file somewhere.
 DEFAULT_ADDRESS_GROUPS = [
     ('Any', [('Any', '0.0.0.0/0')]),
-    ]
+]
 
 
 class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
@@ -87,8 +88,8 @@ class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
                     break
             else:
                 reason = ('Cannot create a subnet that is not within the '
-                           'allowed address ranges [%s].' %
-                           cfg.CONF.akanda_allowed_cidr_ranges)
+                          'allowed address ranges [%s].' %
+                          cfg.CONF.akanda_allowed_cidr_ranges)
                 #FIXME(rods):  enable internationalization for this message
                 raise q_exc.AdminRequired(reason=reason)
 
@@ -156,9 +157,11 @@ class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
                 port['fixed_ips'].append({'subnet_id': subnet['id'],
                                           'ip_address': subnet['gateway_ip']})
 
-            self.update_port(context.elevated(),
-                             port['id'],
-                             {'port': port})
+            self.update_port(
+                context.elevated(),
+                port['id'],
+                {'port': port}
+            )
         return True
 
     def _akanda_add_ipv6_subnet(self, context, network):
@@ -166,7 +169,8 @@ class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
         try:
             subnet_generator = _ipv6_subnet_generator(
                 cfg.CONF.akanda_ipv6_tenant_range,
-                cfg.CONF.akanda_ipv6_prefix_length)
+                cfg.CONF.akanda_ipv6_prefix_length
+            )
         except:
             LOG.exception('Unable able to add tenant IPv6 subnet.')
             return
@@ -185,14 +189,15 @@ class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
             if not existing:
                 create_args = {
                     'network_id': network['id'],
-                           'name': '',
-                           'cidr': str(candidate_cidr),
-                           'ip_version': candidate_cidr.version,
-                           'enable_dhcp': False,
-                           'gateway_ip': attributes.ATTR_NOT_SPECIFIED,
-                           'dns_nameservers': attributes.ATTR_NOT_SPECIFIED,
-                           'host_routes': attributes.ATTR_NOT_SPECIFIED,
-                           'allocation_pools': attributes.ATTR_NOT_SPECIFIED}
+                    'name': '',
+                    'cidr': str(candidate_cidr),
+                    'ip_version': candidate_cidr.version,
+                    'enable_dhcp': False,
+                    'gateway_ip': attributes.ATTR_NOT_SPECIFIED,
+                    'dns_nameservers': attributes.ATTR_NOT_SPECIFIED,
+                    'host_routes': attributes.ATTR_NOT_SPECIFIED,
+                    'allocation_pools': attributes.ATTR_NOT_SPECIFIED
+                }
                 self.create_subnet(context, {'subnet': create_args})
                 break
         else:
@@ -204,10 +209,11 @@ class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
         """
         for protocol, port, name in DEFAULT_PORT_ALIASES:
             pa_q = context.session.query(akmodels.PortAlias)
-            pa_q = pa_q.filter_by(tenant_id=context.tenant_id,
-                                  port=port,
-                                  protocol=protocol,
-                                  )
+            pa_q = pa_q.filter_by(
+                tenant_id=context.tenant_id,
+                port=port,
+                protocol=protocol,
+            )
             try:
                 pa_q.one()
             except exc.NoResultFound:
@@ -217,7 +223,7 @@ class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
                         protocol=protocol,
                         port=port,
                         tenant_id=context.tenant_id,
-                        )
+                    )
                     context.session.add(alias)
                     LOG.debug('Created default port alias %s', alias.name)
         return
@@ -227,9 +233,10 @@ class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
         """
         for ag_name, entries in DEFAULT_ADDRESS_GROUPS:
             ag_q = context.session.query(akmodels.AddressGroup)
-            ag_q = ag_q.filter_by(tenant_id=context.tenant_id,
-                                  name=ag_name,
-                                  )
+            ag_q = ag_q.filter_by(
+                tenant_id=context.tenant_id,
+                name=ag_name,
+            )
             try:
                 address_group = ag_q.one()
             except exc.NoResultFound:
@@ -237,17 +244,18 @@ class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
                     address_group = akmodels.AddressGroup(
                         name=ag_name,
                         tenant_id=context.tenant_id,
-                        )
+                    )
                     context.session.add(address_group)
                     LOG.debug('Created default address group %s',
                               address_group.name)
 
             for entry_name, cidr in entries:
                 entry_q = context.session.query(akmodels.AddressEntry)
-                entry_q = entry_q.filter_by(group=address_group,
-                                            name=entry_name,
-                                            cidr=cidr,
-                                            )
+                entry_q = entry_q.filter_by(
+                    group=address_group,
+                    name=entry_name,
+                    cidr=cidr,
+                )
                 try:
                     entry_q.one()
                 except exc.NoResultFound:
@@ -257,7 +265,7 @@ class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
                             group=address_group,
                             cidr=cidr,
                             tenant_id=context.tenant_id,
-                            )
+                        )
                         context.session.add(entry)
                         LOG.debug(
                             'Created default entry for %s in address group %s',
@@ -286,7 +294,8 @@ def _ipv6_subnet_generator(network_range, prefixlen):
         rand_bits = rand.randint(0, max_range)
 
         candidate_cidr = netaddr.IPNetwork(
-                netaddr.IPAddress(net.value + (rand_bits << prefixlen)))
+            netaddr.IPAddress(net.value + (rand_bits << prefixlen))
+        )
         candidate_cidr.prefixlen = prefixlen
 
         yield candidate_cidr

@@ -75,16 +75,16 @@ class AddressEntryResource(_authzbase.ResourceDelegate):
             try:
                 group = qry.one()
             except exc.NoResultFound:
-                msg = ("Tenant %(tenant_id) does not have an address "
-                       "group with id %(group_id)s" %
-                       {'tenant_id': tenant_id,
-                        'group_id': body.get('group_id'),
-                        })
+                msg = (
+                    "Tenant %(tenant_id) does not have an address "
+                    "group with id %(group_id)s" %
+                    {'tenant_id': tenant_id, 'group_id': body.get('group_id')}
+                )
                 raise q_exc.BadRequest(resource='addressentry', msg=msg)
             if group.name == 'Any':
                 raise q_exc.PolicyNotAuthorized(
                     action='modification of system address groups'
-                    )
+                )
             if 'tenant_id' in body:
                 del body['tenant_id']
             item = self.model(tenant_id=tenant_id, **body)
@@ -95,18 +95,18 @@ class AddressEntryResource(_authzbase.ResourceDelegate):
         if resource.group.name == 'Any':
             raise q_exc.PolicyNotAuthorized(
                 action='modification of system address groups'
-                )
+            )
         return super(AddressEntryResource, self).update(
             context,
             resource,
             resource_dict,
-            )
+        )
 
     def before_delete(self, resource):
         if resource.group.name == 'Any':
             raise q_exc.PolicyNotAuthorized(
                 action='modification of system address groups'
-                )
+            )
         return super(AddressEntryResource, self).before_delete(resource)
 
 
@@ -132,9 +132,12 @@ class Addressentry(object):
         return "2012-08-02T16:00:00-05:00"
 
     def get_resources(self):
-        return [extensions.ResourceExtension(
-            'dhaddressentry',
-            _authzbase.create_extension(AddressEntryResource()))]
+        return [
+            extensions.ResourceExtension(
+                'dhaddressentry',
+                _authzbase.create_extension(AddressEntryResource())
+            )
+        ]
 
     def get_actions(self):
         return []

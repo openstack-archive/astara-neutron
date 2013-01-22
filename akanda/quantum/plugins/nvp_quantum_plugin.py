@@ -23,13 +23,13 @@ akanda_opts = [
     cfg.IntOpt('akanda_ipv6_prefix_length',
                default=64,
                help='Default length of prefix to pre-assign'),
-    cfg.ListOpt('akanda_allowed_cidr_ranges',
+    cfg.ListOpt(
+        'akanda_allowed_cidr_ranges',
         default=['10.0.0.8/8', '172.16.0.0/12', '192.168.0.0/16', 'fc00::/7'],
         help='List of allowed subnet cidrs for non-admin users')
 ]
 
 cfg.CONF.register_opts(akanda_opts)
-
 
 
 class NVPQuantumPlugin(nvp.NvpPluginV2, l3_db.L3_NAT_db_mixin):
@@ -95,8 +95,8 @@ class NVPQuantumPlugin(nvp.NvpPluginV2, l3_db.L3_NAT_db_mixin):
     def update_subnet(self, context, id, subnet):
         old_gateway = self._get_subnet(context, id)['gateway_ip']
         retval = super(NVPQuantumPlugin, self).update_subnet(context,
-                                                               id,
-                                                               subnet)
+                                                             id,
+                                                             subnet)
         # update router ports to make sure gateway matches
         if old_gateway != retval['gateway_ip']:
             self._akanda_update_internal_gateway_port_ip(context, retval)
@@ -178,7 +178,7 @@ class NVPQuantumPlugin(nvp.NvpPluginV2, l3_db.L3_NAT_db_mixin):
         remaining = IPV6_ASSIGNMENT_ATTEMPTS
 
         while remaining:
-            remaining -=1
+            remaining -= 1
 
             candidate_cidr = subnet_generator.next()
 
@@ -189,18 +189,20 @@ class NVPQuantumPlugin(nvp.NvpPluginV2, l3_db.L3_NAT_db_mixin):
             if not existing:
                 create_args = {
                     'network_id': network['id'],
-                           'name': '',
-                           'cidr': str(candidate_cidr),
-                           'ip_version': candidate_cidr.version,
-                           'enable_dhcp': False,
-                           'gateway_ip': attributes.ATTR_NOT_SPECIFIED,
-                           'dns_nameservers': attributes.ATTR_NOT_SPECIFIED,
-                           'host_routes': attributes.ATTR_NOT_SPECIFIED,
-                           'allocation_pools': attributes.ATTR_NOT_SPECIFIED}
+                    'name': '',
+                    'cidr': str(candidate_cidr),
+                    'ip_version': candidate_cidr.version,
+                    'enable_dhcp': False,
+                    'gateway_ip': attributes.ATTR_NOT_SPECIFIED,
+                    'dns_nameservers': attributes.ATTR_NOT_SPECIFIED,
+                    'host_routes': attributes.ATTR_NOT_SPECIFIED,
+                    'allocation_pools': attributes.ATTR_NOT_SPECIFIED
+                }
                 self.create_subnet(context, {'subnet': create_args})
                 break
         else:
             LOG.error('Unable to generate a unique tenant subnet cidr')
+
 
 def _ipv6_subnet_generator(network_range, prefixlen):
     # coerce prefixlen to stay within bounds
@@ -216,13 +218,13 @@ def _ipv6_subnet_generator(network_range, prefixlen):
                          'range prefixlen (/%s)' % (prefixlen, net.prefixlen))
 
     rand = random.SystemRandom()
-    max_range = 2**(prefixlen - net.prefixlen)
+    max_range = 2 ** (prefixlen - net.prefixlen)
 
     while True:
         rand_bits = rand.randint(0, max_range)
 
         candidate_cidr = netaddr.IPNetwork(
-                netaddr.IPAddress(net.value + (rand_bits << prefixlen)))
+            netaddr.IPAddress(net.value + (rand_bits << prefixlen)))
         candidate_cidr.prefixlen = prefixlen
 
         yield candidate_cidr

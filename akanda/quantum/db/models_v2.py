@@ -49,8 +49,8 @@ class PortForward(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
         nullable=True)
     private_port = sa.Column(sa.Integer, nullable=True)
     port = orm.relationship(models_v2.Port,
-                             backref=orm.backref('forwards',
-                                                 cascade='all,delete'))
+                            backref=orm.backref('forwards',
+                                                cascade='all,delete'))
 
     @validates('name')
     def validate_name(self, key, name):
@@ -78,8 +78,7 @@ class PortForward(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
         return private_port
 
 
-class AddressGroup(model_base.BASEV2, models_v2.HasId,
-                       models_v2.HasTenant):
+class AddressGroup(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
     """Represents AddressGroup extension"""
 
     name = sa.Column(sa.String(255), nullable=False, primary_key=True)
@@ -91,8 +90,7 @@ class AddressGroup(model_base.BASEV2, models_v2.HasId,
         return name
 
 
-class AddressEntry(model_base.BASEV2, models_v2.HasId,
-                       models_v2.HasTenant):
+class AddressEntry(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
     """Represents (part of) an Address extension"""
     __tablename__ = 'addressentries'
 
@@ -126,14 +124,14 @@ class FilterRule(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
     ip_version = sa.Column(sa.Integer, nullable=True)
     protocol = sa.Column(sa.String(5), default='', nullable=False)
     source_id = sa.Column(
-            sa.String(36),
-            sa.ForeignKey('addressgroups.id', ondelete="CASCADE"),
-            nullable=True)
+        sa.String(36),
+        sa.ForeignKey('addressgroups.id', ondelete="CASCADE"),
+        nullable=True)
     source_port = sa.Column(sa.Integer, nullable=True)
     destination_id = sa.Column(
-            sa.String(36),
-            sa.ForeignKey('addressgroups.id', ondelete="CASCADE"),
-            nullable=True)
+        sa.String(36),
+        sa.ForeignKey('addressgroups.id', ondelete="CASCADE"),
+        nullable=True)
     destination_port = sa.Column(sa.Integer, nullable=True)
     created_at = sa.Column(sa.DateTime, default=timeutils.utcnow,
                            nullable=False)
