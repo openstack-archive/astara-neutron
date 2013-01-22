@@ -43,54 +43,58 @@ class AddressGroupResource(_authzbase.ResourceDelegate):
                       'required_by_policy': True,
                       'is_visible': True},
         'entries': {'allow_post': False, 'allow_put': False,
-                   'is_visible': True}
+                    'is_visible': True}
     }
 
     def make_entry_dict(self, addressentry):
-        return {'id': addressentry['id'],
-                'name': addressentry['name'],
-                'group_id': addressentry['group_id'],
-                'tenant_id': addressentry['tenant_id'],
-                'cidr': addressentry['cidr']}
+        return {
+            'id': addressentry['id'],
+            'name': addressentry['name'],
+            'group_id': addressentry['group_id'],
+            'tenant_id': addressentry['tenant_id'],
+            'cidr': addressentry['cidr']
+        }
 
     def make_dict(self, addressgroup):
         """
         Convert a address model object to a dictionary.
         """
-        res = {'id': addressgroup['id'],
-               'name': addressgroup['name'],
-               'tenant_id': addressgroup['tenant_id'],
-               'entries': [self.make_entry_dict(e)
-                           for e in addressgroup['entries']]}
+        res = {
+            'id': addressgroup['id'],
+            'name': addressgroup['name'],
+            'tenant_id': addressgroup['tenant_id'],
+            'entries': [self.make_entry_dict(e)
+                        for e in addressgroup['entries']]
+        }
         return res
 
     def create(self, context, tenant_id, body):
         if body.get('name', '').lower() == 'any':
             raise exceptions.PolicyNotAuthorized(
                 action='creation of wildcard address groups'
-                )
+            )
         return super(AddressGroupResource, self).create(
             context,
             tenant_id,
             body,
-            )
+        )
 
     def update(self, context, resource, resource_dict):
         if resource.name == 'Any':
             raise exceptions.PolicyNotAuthorized(
                 action='modification of system address groups'
-                )
+            )
         return super(AddressGroupResource, self).update(
             context,
             resource,
             resource_dict,
-            )
+        )
 
     def before_delete(self, resource):
         if resource.name == 'Any':
             raise exceptions.PolicyNotAuthorized(
                 action='modification of system address groups'
-                )
+            )
         return super(AddressGroupResource, self).before_delete(resource)
 
 _authzbase.register_quota('addressgroup', 'quota_addressgroup')

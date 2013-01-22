@@ -144,7 +144,7 @@ if __name__ == '__main__':
         auth_url='http://localhost:5000/v2.0/',
         auth_strategy='keystone',
         auth_region='RegionOne')
-    for lister, deleter, obj_type in [
+    resources = [
         (c.list_portalias, c.delete_portalias, 'portalias'),
         (c.list_filterrules, c.delete_filterrule, 'filterrule'),
         (c.list_portforwards, c.delete_portforward, 'portforward'),
@@ -152,8 +152,9 @@ if __name__ == '__main__':
         (c.list_addressgroups, c.delete_addressgroup, 'addressgroup'),
         (c.list_ports, c.delete_port, 'port'),
         (c.list_subnets, c.delete_subnet, 'subnet'),
-        (c.list_networks, c.delete_network, 'network'),
-        ]:
+        (c.list_networks, c.delete_network, 'network')
+    ]
+    for lister, deleter, obj_type in resources:
         print obj_type
         response = lister()
         data = response[iter(response).next()]
