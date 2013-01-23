@@ -4,9 +4,7 @@ python:
 install:
   - pip install -r test_requirements.txt --use-mirror
   - pip install pep8 --use-mirrors
-  - pip install pyflakes --use-mirrors
   - pip install -q . --use-mirrors
 before_script:
   - pep8 --repeat --show-source --ignore=E125 --statistics --exclude=dist,doc,*egg .
-  - pyflakes akanda
 script: nosetests -d
