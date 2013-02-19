@@ -5,6 +5,7 @@ import random
 import netaddr
 from quantum.api.v2 import attributes
 from quantum.common import exceptions as q_exc
+from quantum.db import db_base_plugin_v2
 from quantum.db import models_v2 as qmodels
 from quantum.db import l3_db
 from quantum import manager
@@ -40,8 +41,8 @@ SUPPORTED_EXTENSIONS = [
 
 def auto_add_ipv6_subnet(f):
     @functools.wraps(f)
-    def wrapper(context, networks):
-        net = f(context, networks)
+    def wrapper(self, context, network):
+        net = f(self, context, network)
         _add_ipv6_subnet(context, net)
         return net
     return wrapper
@@ -49,21 +50,28 @@ def auto_add_ipv6_subnet(f):
 
 def auto_add_subnet_to_router(f):
     @functools.wraps(f)
-    def wrapper(context, subnet):
+    def wrapper(self, context, subnet):
         check_subnet_cidr_meets_policy(context, subnet)
-        subnet = f(context, networks)
-        _add_subnet_to_router(context, subnet)
+        subnet = f(self, context, subnet)
+        if subnet['ip_version'] == 4:
+            _add_subnet_to_router(context, subnet)
         return subnet
     return wrapper
 
 
 def sync_subnet_gateway_port(f):
     @functools.wraps(f)
-    def wrapper(context, id, subnet):
-        retval = f(context, id, subnet)
+    def wrapper(self, ontext, id, subnet):
+        retval = f(self, context, id, subnet)
         _update_internal_gateway_port_ip(context, retval)
         return retval
     return wrapper
+
+
+def monkey_patch_ipv6_generator():
+    cls = db_base_plugin_v2.QuantumDbPluginV2
+    cls._generate_mac = _wrap_generate_mac(cls._generate_mac)
+    cls._generate_ip = _wrap_generate_ip(cls, cls._generate_ip)
 
 
 def check_subnet_cidr_meets_policy(context, subnet):
@@ -96,15 +104,15 @@ def _add_subnet_to_router(context, subnet):
     router_q = context.session.query(l3_db.Router)
     router_q = router_q.filter_by(tenant_id=context.tenant_id)
 
-    try:
-        router = router_q.one()
-    except exc.NoResultFound:
+    router = router_q.first()
+
+    if not router:
         router_args = {'tenant_id': context.tenant_id,
                        'name': 'ak-%s' % context.tenant_id,
                        'admin_state_up': True}
         router = plugin.create_router(context, {'router': router_args})
 
-    if not update_internal_gateway_port_ip(context, subnet):
+    if not _update_internal_gateway_port_ip(context, subnet):
         plugin.add_router_interface(context.elevated(),
                                     router['id'],
                                     {'subnet_id': subnet['id']})
@@ -206,3 +214,66 @@ def _ipv6_subnet_generator(network_range, prefixlen):
         candidate_cidr.prefixlen = prefixlen
 
         yield candidate_cidr
+
+
+def _wrap_generate_mac(f):
+    """ Adds mac_address to context object instead of patch Quantum.
+
+    Annotating the object requires a less invasive change until upstream
+    can be fixed in Havana.  This version works in concert with
+    _generate_ip below to make IPv6 stateless addresses correctly.
+    """
+
+    @staticmethod
+    def wrapper(context, network_id):
+        mac_addr = f(context, network_id)
+        context.mac_address = mac_addr
+        return mac_addr
+    return wrapper
+
+
+def _wrap_generate_ip(cls, f):
+    """Generate an IP address.
+
+    The IP address will be generated from one of the subnets defined on
+    the network.
+    """
+
+    @staticmethod
+    def wrapper(context, subnets):
+        if hasattr(context, 'mac_address'):
+            for subnet in subnets:
+                if subnet['ip_version'] != 6:
+                    continue
+                elif netaddr.IPNetwork(subnet['cidr']).prefixlen <= 64:
+                    network_id = subnet['network_id']
+                    subnet_id = subnet['id']
+                    candidate = _generate_ipv6_address(
+                        subnet['cidr'],
+                        context.mac_address
+                    )
+
+                    if cls._check_unique_ip(context, network_id, subnet_id,
+                                            candidate):
+                        cls._allocate_specific_ip(
+                            context,
+                            subnet_id,
+                            candidate
+                        )
+                        return {
+                            'ip_address': candidate,
+                            'subnet_id': subnet_id
+                        }
+
+        # otherwise fallback to built-in versio
+        return f(context, subnets)
+    return wrapper
+
+
+def _generate_ipv6_address(cidr, mac_address):
+    network = netaddr.IPNetwork(cidr)
+    tokens = ['%02x' % int(t, 16) for t in mac_address.split(':')]
+    eui64 = int(''.join(tokens[0:3] + ['ff', 'fe'] + tokens[3:6]), 16)
+
+    # the bit inversion is required by the RFC
+    return str(netaddr.IPAddress(network.value + (eui64 ^ 0x0200000000000000)))
