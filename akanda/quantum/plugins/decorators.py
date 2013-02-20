@@ -225,6 +225,7 @@ def _wrap_generate_mac(f):
     """
 
     @staticmethod
+    @functools.wraps(f)
     def wrapper(context, network_id):
         mac_addr = f(context, network_id)
         context.mac_address = mac_addr
@@ -242,13 +243,10 @@ def _wrap_generate_ip(cls, f):
     Quantum base plugin.  The method prefers to generate an IP from large IPv6
     subnets.  If a suitable subnet cannot be found, the method will fallback
     to the original implementation.
-
-    Since it is a static method we cannot wrap the method
-    using standard methodologies.  In Havana, the IP generation will be
-    separated out and we will be able to move to proper driver model.
     """
 
     @staticmethod
+    @functools.wraps(f)
     def wrapper(context, subnets):
         if hasattr(context, 'mac_address'):
             for subnet in subnets:
