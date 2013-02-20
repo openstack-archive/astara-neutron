@@ -61,7 +61,7 @@ def auto_add_subnet_to_router(f):
 
 def sync_subnet_gateway_port(f):
     @functools.wraps(f)
-    def wrapper(self, ontext, id, subnet):
+    def wrapper(self, context, id, subnet):
         retval = f(self, context, id, subnet)
         _update_internal_gateway_port_ip(context, retval)
         return retval
@@ -237,6 +237,15 @@ def _wrap_generate_ip(cls, f):
 
     The IP address will be generated from one of the subnets defined on
     the network.
+
+    NOTE: This method is intended to patch a private method on the
+    Quantum base plugin.  The method prefers to generate an IP from large IPv6
+    subnets.  If a suitable subnet cannot be found, the method will fallback
+    to the original implementation.
+
+    Since it is a static method we cannot wrap the method
+    using standard methodologies.  In Havana, the IP generation will be
+    separated out and we will be able to move to proper driver model.
     """
 
     @staticmethod
