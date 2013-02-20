@@ -140,11 +140,10 @@ class NvpPluginV2(nvp.NvpPluginV2):
             nicira_db.add_quantum_nvp_port_mapping(
                 context.session, port_data['id'], lport['uuid'])
             d_owner = port_data['device_owner']
-            if (not d_owner in (l3_db.DEVICE_OWNER_ROUTER_GW,
-                                l3_db.DEVICE_OWNER_ROUTER_INTF)):
-                nvplib.plug_interface(cluster, lswitch_uuid,
-                                      lport['uuid'], "VifAttachment",
-                                      port_data['id'])
+
+            nvplib.plug_interface(cluster, lswitch_uuid,
+                                  lport['uuid'], "VifAttachment",
+                                  port_data['id'])
             LOG.debug(_("_nvp_create_port completed for port %(port_name)s "
                         "on network %(net_id)s. The new port id is "
                         "%(port_id)s. NVP port id is %(nvp_port_id)s"),
