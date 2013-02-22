@@ -123,9 +123,9 @@ def _update_internal_gateway_port_ip(context, router_id, subnet):
         return
 
     q = context.session.query(l3_db.RouterPort, qmodels.Port)
-    q = q.filter(l3_db.RouterPort.router_id==router_id)
-    q = q.filter(l3_db.RouterPort.port_type==l3_db.DEVICE_OWNER_ROUTER_INTF)
-    q = q.filter(qmodels.Port.network_id==subnet['network_id'])
+    q = q.filter(l3_db.RouterPort.router_id == router_id)
+    q = q.filter(l3_db.RouterPort.port_type == l3_db.DEVICE_OWNER_ROUTER_INTF)
+    q = q.filter(qmodels.Port.network_id == subnet['network_id'])
     routerport, port = q.first() or (None, None)
 
     if not routerport:
