@@ -53,8 +53,7 @@ def auto_add_subnet_to_router(f):
     def wrapper(self, context, subnet):
         check_subnet_cidr_meets_policy(context, subnet)
         subnet = f(self, context, subnet)
-        if subnet['ip_version'] == 4:
-            _add_subnet_to_router(context, subnet)
+        _add_subnet_to_router(context, subnet)
         return subnet
     return wrapper
 
@@ -112,41 +111,52 @@ def _add_subnet_to_router(context, subnet):
                        'admin_state_up': True}
         router = plugin.create_router(context, {'router': router_args})
 
-    if not _update_internal_gateway_port_ip(context, subnet):
+    if not _update_internal_gateway_port_ip(context, router['id'], subnet):
         plugin.add_router_interface(context.elevated(),
                                     router['id'],
                                     {'subnet_id': subnet['id']})
 
 
-def _update_internal_gateway_port_ip(context, subnet):
+def _update_internal_gateway_port_ip(context, router_id, subnet):
+    """Attempt to update internal gateway port if one already exists."""
     if not subnet.get('gateway_ip'):
         return
 
+    q = context.session.query(l3_db.RouterPort, qmodels.Port)
+    q = q.filter(l3_db.RouterPort.router_id==router_id)
+    q = q.filter(l3_db.RouterPort.port_type==l3_db.DEVICE_OWNER_ROUTER_INTF)
+    q = q.filter(qmodels.Port.network_id==subnet['network_id'])
+    routerport, port = q.first() or (None, None)
+
+    if not routerport:
+        LOG.exception('Unable able to find router.')
+        return
+
+    fixed_ips = [
+        {'subnet_id': ip["subnet_id"], 'ip_address': ip["ip_address"]}
+        for ip in port["fixed_ips"]
+    ]
+
+    for index, ip in enumerate(fixed_ips):
+        if ip['subnet_id'] == subnet['id']:
+            if not subnet['gateway_ip']:
+                del fixed_ips[index]
+            elif ip['ip_address'] != subnet['gateway_ip']:
+                ip['ip_address'] = subnet['gateway_ip']
+            else:
+                return True  # nothing to update
+            break
+    else:
+        fixed_ips.append(
+            {'subnet_id': subnet['id'], 'ip_address': subnet['gateway_ip']}
+        )
+
+    # we call into the plugin vs updating the db directly because of l3 hooks
+    # baked into the plugins.
     plugin = manager.QuantumManager.get_plugin()
-
-    filters = {
-        'device_owner': [l3_db.DEVICE_OWNER_ROUTER_INTF],
-        'network_id': [subnet['network_id']]
-    }
-    ports = plugin.get_ports(context, filters=filters)
-
-    for port in ports:
-        for fixed_ip in port['fixed_ips']:
-            if fixed_ip['subnet_id'] == subnet['id']:
-                fixed_ip['ip_address'] = subnet['gateway_ip']
-                plugin.update_port(context.elevated(),
-                                   port['id'],
-                                   {'port': port})
-                return True
-    if ports:
-        # append subnet to first port
-        port = ports[0]
-        port['fixed_ips'].append({'subnet_id': subnet['id'],
-                                  'ip_address': subnet['gateway_ip']})
-        plugin.update_port(context.elevated(),
-                           port['id'],
-                           {'port': port})
-        return True
+    port_dict = {'fixed_ips': fixed_ips}
+    plugin.update_port(context.elevated(), port['id'], {'port': port_dict})
+    return True
 
 
 def _add_ipv6_subnet(context, network):
