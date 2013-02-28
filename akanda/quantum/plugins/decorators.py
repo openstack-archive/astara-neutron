@@ -12,7 +12,6 @@ from quantum import manager
 from quantum.openstack.common import cfg
 from sqlalchemy.orm import exc
 
-# this import is here to ensure that models are loaded by SQLAlchemy
 from akanda.quantum.db import models_v2 as akmodels
 
 IPV6_ASSIGNMENT_ATTEMPTS = 1000
@@ -36,6 +35,27 @@ cfg.CONF.register_opts(akanda_opts)
 SUPPORTED_EXTENSIONS = [
     'dhportforward', 'dhaddressgroup', 'dhaddressentry', 'dhfilterrule',
     'dhportalias'
+]
+
+# Provide a list of the default port aliases to be
+# created for a tenant.
+# FIXME(dhellmann): This list should come from
+# a configuration file somewhere.
+DEFAULT_PORT_ALIASES = [
+    ('tcp', 0, 'Any TCP'),
+    ('udp', 0, 'Any UDP'),
+    ('tcp', 22, 'ssh'),
+    ('udp', 53, 'DNS'),
+    ('tcp', 80, 'HTTP'),
+    ('tcp', 443, 'HTTPS'),
+]
+
+# Provide a list of the default address entries
+# to be created for a tenant.
+# FIXME(dhellmann): This list should come from
+# a configuration file somewhere.
+DEFAULT_ADDRESS_GROUPS = [
+    ('Any', [('Any', '0.0.0.0/0')]),
 ]
 
 
@@ -63,6 +83,17 @@ def sync_subnet_gateway_port(f):
     def wrapper(self, context, id, subnet):
         retval = f(self, context, id, subnet)
         _update_internal_gateway_port_ip(context, retval)
+        return retval
+    return wrapper
+
+
+def auto_add_other_resources(f):
+    @functools.wraps(f)
+    def wrapper(self, context, *args, **kwargs):
+        retval = f(self, context, *args, **kwargs)
+        if not context.is_admin:
+            _auto_add_port_aliases(context)
+            _auto_add_address_groups(context)
         return retval
     return wrapper
 
@@ -294,3 +325,71 @@ def _generate_ipv6_address(cidr, mac_address):
 
     # the bit inversion is required by the RFC
     return str(netaddr.IPAddress(network.value + (eui64 ^ 0x0200000000000000)))
+
+
+def _auto_add_address_groups(context):
+    """Create default address groups if the tenant does not have them. """
+    for ag_name, entries in DEFAULT_ADDRESS_GROUPS:
+        ag_q = context.session.query(akmodels.AddressGroup)
+        ag_q = ag_q.filter_by(
+            tenant_id=context.tenant_id,
+            name=ag_name,
+        )
+        try:
+            address_group = ag_q.one()
+        except exc.NoResultFound:
+            with context.session.begin(subtransactions=True):
+                address_group = akmodels.AddressGroup(
+                    name=ag_name,
+                    tenant_id=context.tenant_id,
+                )
+                context.session.add(address_group)
+                LOG.debug('Created default address group %s',
+                          address_group.name)
+
+        for entry_name, cidr in entries:
+            entry_q = context.session.query(akmodels.AddressEntry)
+            entry_q = entry_q.filter_by(
+                group=address_group,
+                name=entry_name,
+                cidr=cidr,
+            )
+            try:
+                entry_q.one()
+            except exc.NoResultFound:
+                with context.session.begin(subtransactions=True):
+                    entry = akmodels.AddressEntry(
+                        name=entry_name,
+                        group=address_group,
+                        cidr=cidr,
+                        tenant_id=context.tenant_id,
+                    )
+                    context.session.add(entry)
+                    LOG.debug(
+                        'Created default entry for %s in address group %s',
+                        cidr, address_group.name)
+
+
+def _auto_add_port_aliases(context):
+    """Create the default port aliases for the current tenant, if
+    they don't already exist.
+    """
+    for protocol, port, name in DEFAULT_PORT_ALIASES:
+        pa_q = context.session.query(akmodels.PortAlias)
+        pa_q = pa_q.filter_by(
+            tenant_id=context.tenant_id,
+            port=port,
+            protocol=protocol,
+        )
+        try:
+            pa_q.one()
+        except exc.NoResultFound:
+            with context.session.begin(subtransactions=True):
+                alias = akmodels.PortAlias(
+                    name=name,
+                    protocol=protocol,
+                    port=port,
+                    tenant_id=context.tenant_id,
+                )
+                context.session.add(alias)
+                LOG.debug('Created default port alias %s', alias.name)

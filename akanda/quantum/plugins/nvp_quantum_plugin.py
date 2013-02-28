@@ -74,6 +74,7 @@ class NvpPluginV2(nvp.NvpPluginV2):
         # Consume from all consumers in a thread
         self.conn.consume_in_thread()
 
+    @akanda.auto_add_other_resources
     @akanda.auto_add_ipv6_subnet
     def create_network(self, context, network):
         return super(NvpPluginV2, self).create_network(context, network)
