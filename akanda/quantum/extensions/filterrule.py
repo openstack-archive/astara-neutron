@@ -66,6 +66,7 @@ class FilterruleResource(_authzbase.ResourceDelegate):
     def make_entry_dict(self, addressentry):
         res = {
             'id': addressentry['id'],
+            'name': addressentry['name'],
             'tenant_id': addressentry['tenant_id'],
             'name': addressentry['name'],
             'cidr': addressentry['cidr']
@@ -78,10 +79,10 @@ class FilterruleResource(_authzbase.ResourceDelegate):
 
         res = {
             'id': addressgroup['id'],
-            'tenant_id': addressgroup['tenant_id'],
             'name': addressgroup['name'],
-            'cidrs': [self.make_entry_dict(e)
-                      for e in addressgroup.entries]
+            'tenant_id': addressgroup['tenant_id'],
+            'entries': [self.make_entry_dict(e)
+                        for e in addressgroup.entries]
         }
 
         return res
