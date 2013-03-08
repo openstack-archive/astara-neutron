@@ -30,12 +30,13 @@ class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
     @akanda.auto_add_other_resources
     @akanda.auto_add_ipv6_subnet
     def create_network(self, context, network):
-        return super(NvpPluginV2, self).create_network(context, network)
+        return super(OVSQuantumPluginV2, self).create_network(context, network)
 
     @akanda.auto_add_subnet_to_router
     def create_subnet(self, context, subnet):
-        return super(NvpPluginV2, self).create_subnet(context, subnet)
+        return super(OVSQuantumPluginV2, self).create_subnet(context, subnet)
 
     @akanda.sync_subnet_gateway_port
     def update_subnet(self, context, id, subnet):
-        return super(NvpPluginV2, self).update_subnet(context, id, subnet)
+        return super(OVSQuantumPluginV2, self).update_subnet(
+            context, id, subnet)
