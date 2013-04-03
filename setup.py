@@ -14,7 +14,7 @@ setup(
     install_requires=[
     ],
     namespace_packages=['akanda'],
-    packages=find_packages(),
+    packages=find_packages(exclude=['test', 'smoke']),
     include_package_data=True,
     zip_safe=False,
 )
