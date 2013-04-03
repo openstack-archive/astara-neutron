@@ -4,12 +4,12 @@ import random
 
 import netaddr
 from quantum.api.v2 import attributes
+from quantum.common.config import cfg
 from quantum.common import exceptions as q_exc
 from quantum.db import db_base_plugin_v2
 from quantum.db import models_v2 as qmodels
 from quantum.db import l3_db
 from quantum import manager
-from quantum.openstack.common import cfg
 from sqlalchemy.orm import exc
 
 from akanda.quantum.db import models_v2 as akmodels
@@ -106,6 +106,8 @@ def monkey_patch_ipv6_generator():
 
 def check_subnet_cidr_meets_policy(context, subnet):
     if context.is_admin:
+        return
+    elif getattr(context, '_akanda_auto_add', None):
         return
 
     net = netaddr.IPNetwork(subnet['subnet']['cidr'])
@@ -225,7 +227,9 @@ def _add_ipv6_subnet(context, network):
                 'host_routes': attributes.ATTR_NOT_SPECIFIED,
                 'allocation_pools': attributes.ATTR_NOT_SPECIFIED
             }
+            context._akanda_auto_add = True
             plugin.create_subnet(context, {'subnet': create_args})
+            del context._akanda_auto_add
             break
     else:
         LOG.error('Unable to generate a unique tenant subnet cidr')
