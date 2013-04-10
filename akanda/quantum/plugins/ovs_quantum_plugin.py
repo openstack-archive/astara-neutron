@@ -22,8 +22,8 @@ from akanda.quantum.plugins import decorators as akanda
 
 
 class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
-    supported_extension_aliases = (
-        ovs_quantum_plugin.OVSQuantumPluginV2.supported_extension_aliases +
+    _supported_extension_aliases = (
+        ovs_quantum_plugin.OVSQuantumPluginV2._supported_extension_aliases +
         ["dhportforward", "dhaddressgroup", "dhaddressentry",
          "dhfilterrule", "dhportalias"])
 
