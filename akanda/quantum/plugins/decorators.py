@@ -155,7 +155,7 @@ def _update_internal_gateway_port_ip(context, router_id, subnet):
     LOG.debug('setting gateway port IP for router %s on network %s for subnet %s',
               router_id, subnet['network_id'], subnet['id'])
     if not subnet.get('gateway_ip'):
-        LOG.debug('no gateway set for subnet %s, skipping', subnet)
+        LOG.debug('no gateway set for subnet %s, skipping', subnet['id'])
         return
 
     q = context.session.query(l3_db.RouterPort, qmodels.Port)
