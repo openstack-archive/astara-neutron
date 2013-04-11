@@ -62,6 +62,7 @@ DEFAULT_ADDRESS_GROUPS = [
 def auto_add_ipv6_subnet(f):
     @functools.wraps(f)
     def wrapper(self, context, network):
+        LOG.debug('auto_add_ipv6_subnet')
         net = f(self, context, network)
         _add_ipv6_subnet(context, net)
         return net
@@ -71,6 +72,7 @@ def auto_add_ipv6_subnet(f):
 def auto_add_subnet_to_router(f):
     @functools.wraps(f)
     def wrapper(self, context, subnet):
+        LOG.debug('auto_add_subnet_to_router')
         check_subnet_cidr_meets_policy(context, subnet)
         subnet = f(self, context, subnet)
         _add_subnet_to_router(context, subnet)
@@ -81,6 +83,7 @@ def auto_add_subnet_to_router(f):
 def sync_subnet_gateway_port(f):
     @functools.wraps(f)
     def wrapper(self, context, id, subnet):
+        LOG.debug('sync_subnet_gateway_port')
         retval = f(self, context, id, subnet)
         _update_internal_gateway_port_ip(context, retval)
         return retval
@@ -90,6 +93,7 @@ def sync_subnet_gateway_port(f):
 def auto_add_other_resources(f):
     @functools.wraps(f)
     def wrapper(self, context, *args, **kwargs):
+        LOG.debug('auto_add_other_resources')
         retval = f(self, context, *args, **kwargs)
         if not context.is_admin:
             _auto_add_port_aliases(context)
@@ -124,6 +128,7 @@ def check_subnet_cidr_meets_policy(context, subnet):
 
 
 def _add_subnet_to_router(context, subnet):
+    LOG.debug('_add_subnet_to_router')
     if context.is_admin:
         # admins can manually add their own interfaces
         return
@@ -152,8 +157,12 @@ def _add_subnet_to_router(context, subnet):
 
 def _update_internal_gateway_port_ip(context, router_id, subnet):
     """Attempt to update internal gateway port if one already exists."""
-    LOG.debug('setting gateway port IP for router %s on network %s for subnet %s',
-              router_id, subnet['network_id'], subnet['id'])
+    LOG.debug(
+        'setting gateway port IP for router %s on network %s for subnet %s',
+        router_id,
+        subnet['network_id'],
+        subnet['id'],
+    )
     if not subnet.get('gateway_ip'):
         LOG.debug('no gateway set for subnet %s, skipping', subnet['id'])
         return
@@ -165,8 +174,10 @@ def _update_internal_gateway_port_ip(context, router_id, subnet):
     routerport, port = q.first() or (None, None)
 
     if not routerport:
-        LOG.exception('Unable to find router for port %s on network %s.'
-                      % (router_id, subnet['network_id']))
+        LOG.exception(
+            'Unable to find a %s port for router %s on network %s.'
+            % ('DEVICE_OWNER_ROUTER_INTF', router_id, subnet['network_id'])
+        )
         return
 
     fixed_ips = [
