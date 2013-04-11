@@ -152,7 +152,10 @@ def _add_subnet_to_router(context, subnet):
 
 def _update_internal_gateway_port_ip(context, router_id, subnet):
     """Attempt to update internal gateway port if one already exists."""
+    LOG.debug('setting gateway port IP for router %s on network %s for subnet %s',
+              router_id, subnet['network_id'], subnet['id'])
     if not subnet.get('gateway_ip'):
+        LOG.debug('no gateway set for subnet %s, skipping', subnet)
         return
 
     q = context.session.query(l3_db.RouterPort, qmodels.Port)
@@ -162,7 +165,8 @@ def _update_internal_gateway_port_ip(context, router_id, subnet):
     routerport, port = q.first() or (None, None)
 
     if not routerport:
-        LOG.exception('Unable able to find router.')
+        LOG.exception('Unable to find router for port %s on network %s.'
+                      % (router_id, subnet['network_id']))
         return
 
     fixed_ips = [
