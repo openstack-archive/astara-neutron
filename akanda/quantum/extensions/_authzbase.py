@@ -23,7 +23,7 @@ from quantum import quota
 from quantum.api.v2 import base
 from quantum.api.v2 import resource as api_resource
 from quantum.common import exceptions as q_exc
-from quantum.openstack.common import cfg
+from quantum.common.config import cfg
 
 
 class ResourcePlugin(object):
