@@ -26,7 +26,7 @@ akanda_opts = [
                help='Default length of prefix to pre-assign'),
     cfg.ListOpt(
         'akanda_allowed_cidr_ranges',
-        default=['10.0.0.8/8', '172.16.0.0/12', '192.168.0.0/16', 'fc00::/7'],
+        default=['10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16', 'fc00::/7'],
         help='List of allowed subnet cidrs for non-admin users')
 ]
 
