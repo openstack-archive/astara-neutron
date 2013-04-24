@@ -27,6 +27,11 @@ class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
         ["dhportforward", "dhaddressgroup", "dhaddressentry",
          "dhfilterrule", "dhportalias"])
 
+    try:
+        _supported_extension_aliases.remove('agent_scheduler')
+    except ValueError:
+        pass
+
     @akanda.auto_add_other_resources
     @akanda.auto_add_ipv6_subnet
     def create_network(self, context, network):
