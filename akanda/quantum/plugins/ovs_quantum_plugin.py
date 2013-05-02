@@ -19,6 +19,7 @@
 from quantum.plugins.openvswitch import ovs_quantum_plugin
 
 from akanda.quantum.plugins import decorators as akanda
+akanda.monkey_patch_ipv6_generator()
 
 
 class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
