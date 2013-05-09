@@ -103,6 +103,7 @@ class NvpPluginV2(nvp.NvpPluginV2):
     get_floatingip = l3_db.L3_NAT_db_mixin.get_floatingip
     get_floatings = l3_db.L3_NAT_db_mixin.get_floatingips
     _update_fip_assoc = l3_db.L3_NAT_db_mixin._update_fip_assoc
+    disassociate_floatingips = l3_db.L3_NAT_db_mixin.disassociate_floatingips
 
     def _ensure_metadata_host_route(self, *args, **kwargs):
         """ Akanda metadata services are provided by router so make no-op/"""
