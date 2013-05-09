@@ -16,6 +16,8 @@
 #    under the License.
 #
 
+import functools
+
 from quantum.common import topics
 from quantum.db import l3_db
 from quantum.db import l3_rpc_base as l3_rpc
@@ -31,6 +33,26 @@ from akanda.quantum.plugins import decorators as akanda
 
 LOG = logging.getLogger("QuantumPlugin")
 akanda.monkey_patch_ipv6_generator()
+
+
+def egress_multicast_hotfix(f):
+    @functools.wraps(f)
+    def wrapper(lport_obj, mac_address, fixed_ips, port_security_enabled,
+                security_profiles, queue_id):
+        f(lport_obj, mac_address, fixed_ips, port_security_enabled,
+          security_profiles, queue_id)
+
+        # evaulate the state so that we only override the value when enabled
+        # otherwise we are preserving the underlying behavior of the NVP plugin
+        if port_security_enabled:
+            # hotfix to enable egress mulitcast
+            lport_obj['allow_egress_multicast'] = True
+    return wrapper
+
+
+nvp.nvplib._configure_extensions = egress_multicast_hotfix(
+    nvp.nvplib._configure_extensions
+)
 
 
 class AkandaNvpRpcCallbacks(l3_rpc.L3RpcCallbackMixin, nvp.NVPRpcCallbacks):
@@ -103,6 +125,7 @@ class NvpPluginV2(nvp.NvpPluginV2):
     get_floatingip = l3_db.L3_NAT_db_mixin.get_floatingip
     get_floatings = l3_db.L3_NAT_db_mixin.get_floatingips
     _update_fip_assoc = l3_db.L3_NAT_db_mixin._update_fip_assoc
+    disassociate_floatingips = l3_db.L3_NAT_db_mixin.disassociate_floatingips
 
     def _ensure_metadata_host_route(self, *args, **kwargs):
         """ Akanda metadata services are provided by router so make no-op/"""
