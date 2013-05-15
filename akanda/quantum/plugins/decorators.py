@@ -1,8 +1,8 @@
 import functools
+import netaddr
 import logging
 import random
 
-import netaddr
 from quantum.api.v2 import attributes
 from quantum.common.config import cfg
 from quantum.common import exceptions as q_exc
@@ -125,6 +125,29 @@ def check_subnet_cidr_meets_policy(context, subnet):
                    'allowed address ranges [%s].' %
                    cfg.CONF.akanda_allowed_cidr_ranges)
         raise q_exc.AdminRequired(reason=reason)
+
+
+def get_special_ipv6_addrs(ips, mac_address):
+    current_ips = set(ips)
+    special_ips = set([_generate_ipv6_address('fe80::/64', mac_address)])
+
+    akanda_ipv6_cidr = netaddr.IPNetwork(cfg.CONF.akanda_ipv6_tenant_range)
+
+    for ip in current_ips:
+        if '/' not in ip and netaddr.IPAddress(ip) in akanda_ipv6_cidr:
+            # Calculate the cidr here because the caller does not have access
+            # to request context, subnet or port_id.
+            special_ips.add(
+                '%s/%s' % (
+                    netaddr.IPAddress(
+                        netaddr.IPNetwork(
+                            '%s/%d' % (ip, cfg.CONF.akanda_ipv6_prefix_length)
+                        ).first
+                    ),
+                    cfg.CONF.akanda_ipv6_prefix_length
+                )
+            )
+    return special_ips - current_ips
 
 
 def _add_subnet_to_router(context, subnet):
