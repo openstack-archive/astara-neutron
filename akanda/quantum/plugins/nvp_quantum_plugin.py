@@ -35,7 +35,7 @@ LOG = logging.getLogger("QuantumPlugin")
 akanda.monkey_patch_ipv6_generator()
 
 
-def egress_multicast_hotfix(f):
+def akanda_nvp_ipv6_port_security_wrapper(f):
     @functools.wraps(f)
     def wrapper(lport_obj, mac_address, fixed_ips, port_security_enabled,
                 security_profiles, queue_id):
@@ -47,10 +47,22 @@ def egress_multicast_hotfix(f):
         if port_security_enabled:
             # hotfix to enable egress mulitcast
             lport_obj['allow_egress_multicast'] = True
+
+            # add link-local and subnet cidr for IPv6 temp addresses
+            special_ipv6_addrs = akanda.get_special_ipv6_addrs(
+                (p['ip_address'] for p in lport_obj['allowed_address_pairs']),
+                mac_address
+            )
+
+            lport_obj['allowed_address_pairs'].extend(
+                {'mac_address': mac_address, 'ip_address': addr}
+                for addr in special_ipv6_addrs
+            )
+
     return wrapper
 
 
-nvp.nvplib._configure_extensions = egress_multicast_hotfix(
+nvp.nvplib._configure_extensions = akanda_nvp_ipv6_port_security_wrapper(
     nvp.nvplib._configure_extensions
 )
 
