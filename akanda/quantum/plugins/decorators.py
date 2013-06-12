@@ -222,14 +222,20 @@ def _update_internal_gateway_port_ip(context, router_id, subnet):
             break
     else:
         try:
-            plugin._check_for_dup_router_subnet(context, routerport.router, subnet['network_id'], subnet)
-        except:
-            LOG.info(
-                ('Subnet %(id)s will not be auto added to router because %(gateway_ip)s is already in use by '
-                 'another attached network attached to this router.'),
+            plugin._check_for_dup_router_subnet(
+                context,
+                routerport.router,
+                subnet['network_id'],
                 subnet
             )
-            return True # nothing to add
+        except:
+            LOG.info(
+                ('Subnet %(id)s will not be auto added to router because '
+                 '%(gateway_ip)s is already in use by another attached '
+                 'network attached to this router.'),
+                subnet
+            )
+            return True  # nothing to add
         fixed_ips.append(
             {'subnet_id': subnet['id'], 'ip_address': subnet['gateway_ip']}
         )
