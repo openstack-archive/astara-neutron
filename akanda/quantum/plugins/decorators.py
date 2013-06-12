@@ -171,7 +171,6 @@ def _add_subnet_to_router(context, subnet):
                        'name': 'ak-%s' % context.tenant_id,
                        'admin_state_up': True}
         router = plugin.create_router(context, {'router': router_args})
-
     if not _update_internal_gateway_port_ip(context, router['id'], subnet):
         plugin.add_router_interface(context.elevated(),
                                     router['id'],
@@ -190,14 +189,18 @@ def _update_internal_gateway_port_ip(context, router_id, subnet):
         LOG.debug('no gateway set for subnet %s, skipping', subnet['id'])
         return
 
-    q = context.session.query(l3_db.RouterPort, qmodels.Port)
-    q = q.filter(l3_db.RouterPort.router_id == router_id)
-    q = q.filter(l3_db.RouterPort.port_type == l3_db.DEVICE_OWNER_ROUTER_INTF)
-    q = q.filter(qmodels.Port.network_id == subnet['network_id'])
-    routerport, port = q.first() or (None, None)
+    q = context.session.query(l3_db.RouterPort)
+    q = q.join(qmodels.Port)
+    q = q.filter(
+        l3_db.RouterPort.router_id == router_id,
+        l3_db.RouterPort.port_type == l3_db.DEVICE_OWNER_ROUTER_INTF,
+        qmodels.Port.network_id == subnet['network_id']
+
+    )
+    routerport = q.first()
 
     if not routerport:
-        LOG.exception(
+        LOG.info(
             'Unable to find a %s port for router %s on network %s.'
             % ('DEVICE_OWNER_ROUTER_INTF', router_id, subnet['network_id'])
         )
@@ -205,7 +208,7 @@ def _update_internal_gateway_port_ip(context, router_id, subnet):
 
     fixed_ips = [
         {'subnet_id': ip["subnet_id"], 'ip_address': ip["ip_address"]}
-        for ip in port["fixed_ips"]
+        for ip in routerport.port["fixed_ips"]
     ]
 
     for index, ip in enumerate(fixed_ips):
@@ -218,6 +221,15 @@ def _update_internal_gateway_port_ip(context, router_id, subnet):
                 return True  # nothing to update
             break
     else:
+        try:
+            plugin._check_for_dup_router_subnet(context, routerport.router, subnet['network_id'], subnet)
+        except:
+            LOG.info(
+                ('Subnet %(id)s will not be auto added to router because %(gateway_ip)s is already in use by '
+                 'another attached network attached to this router.'),
+                subnet
+            )
+            return True # nothing to add
         fixed_ips.append(
             {'subnet_id': subnet['id'], 'ip_address': subnet['gateway_ip']}
         )
@@ -226,7 +238,11 @@ def _update_internal_gateway_port_ip(context, router_id, subnet):
     # baked into the plugins.
     plugin = manager.QuantumManager.get_plugin()
     port_dict = {'fixed_ips': fixed_ips}
-    plugin.update_port(context.elevated(), port['id'], {'port': port_dict})
+    plugin.update_port(
+        context.elevated(),
+        routerport.port['id'],
+        {'port': port_dict}
+    )
     return True
 
 
