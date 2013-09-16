@@ -13,7 +13,7 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# DreamHost Quantum Extensions
+# DreamHost Neutron Extensions
 # Copyright 2012 New Dream Network, LLC (DreamHost)
 # @author: Murali Raju, New Dream Network, LLC (DreamHost)
 # @author: Mark Mcclain, New Dream Network, LLC (DreamHost)
@@ -26,9 +26,9 @@ from sqlalchemy import orm
 from sqlalchemy.orm import validates
 
 
-from quantum.db import model_base
-from quantum.db import models_v2
-from quantum.openstack.common import timeutils
+from neutron.db import model_base
+from neutron.db import models_v2
+from neutron.openstack.common import timeutils
 
 
 def validate_port_number(port):

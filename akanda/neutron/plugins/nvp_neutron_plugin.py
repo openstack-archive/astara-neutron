@@ -18,20 +18,20 @@
 
 import functools
 
-from quantum.common import topics
-from quantum.db import l3_db
-from quantum.db import l3_rpc_base as l3_rpc
-from quantum.extensions import portsecurity as psec
-from quantum.extensions import securitygroup as ext_sg
-from quantum.openstack.common import log as logging
-from quantum.openstack.common import rpc
-from quantum.plugins.nicira.nicira_nvp_plugin.QuantumPlugin import nicira_db
-from quantum.plugins.nicira.nicira_nvp_plugin import QuantumPlugin as nvp
-from quantum.plugins.nicira.nicira_nvp_plugin.QuantumPlugin import nvplib
+from neutron.common import topics
+from neutron.db import l3_db
+from neutron.db import l3_rpc_base as l3_rpc
+from neutron.extensions import portsecurity as psec
+from neutron.extensions import securitygroup as ext_sg
+from neutron.openstack.common import log as logging
+from neutron.openstack.common import rpc
+from neutron.plugins.nicira.nicira_nvp_plugin.NeutronPlugin import nicira_db
+from neutron.plugins.nicira.nicira_nvp_plugin import NeutronPlugin as nvp
+from neutron.plugins.nicira.nicira_nvp_plugin.NeutronPlugin import nvplib
 
-from akanda.quantum.plugins import decorators as akanda
+from akanda.neutron.plugins import decorators as akanda
 
-LOG = logging.getLogger("QuantumPlugin")
+LOG = logging.getLogger("NeutronPlugin")
 akanda.monkey_patch_ipv6_generator()
 
 
@@ -73,7 +73,7 @@ class AkandaNvpRpcCallbacks(l3_rpc.L3RpcCallbackMixin, nvp.NVPRpcCallbacks):
 
 class NvpPluginV2(nvp.NvpPluginV2):
     """
-    NvpPluginV2 is a Quantum plugin that provides L2 Virtual Network
+    NvpPluginV2 is a Neutron plugin that provides L2 Virtual Network
     functionality using NVP.
     """
     supported_extension_aliases = (
@@ -174,7 +174,7 @@ class NvpPluginV2(nvp.NvpPluginV2):
                                         port_data['fixed_ips'],
                                         port_data[psec.PORTSECURITY],
                                         port_data[ext_sg.SECURITYGROUPS])
-            nicira_db.add_quantum_nvp_port_mapping(
+            nicira_db.add_neutron_nvp_port_mapping(
                 context.session, port_data['id'], lport['uuid'])
             d_owner = port_data['device_owner']
 
@@ -189,7 +189,7 @@ class NvpPluginV2(nvp.NvpPluginV2):
                        'port_id': port_data['id'],
                        'nvp_port_id': lport['uuid']})
         except Exception:
-            # failed to create port in NVP delete port from quantum_db
+            # failed to create port in NVP delete port from neutron_db
             LOG.exception(_("An exception occured while plugging "
                             "the interface"))
             raise

@@ -13,32 +13,32 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# DreamHost Quantum Extensions
+# DreamHost Neutron Extensions
 # @author: Murali Raju, New Dream Network, LLC (DreamHost)
 # @author: Mark Mcclain, New Dream Network, LLC (DreamHost)
 
 import abc
 
-from quantum import quota
-from quantum.api.v2 import base
-from quantum.api.v2 import resource as api_resource
-from quantum.common import exceptions as q_exc
-from quantum.common.config import cfg
+from neutron import quota
+from neutron.api.v2 import base
+from neutron.api.v2 import resource as api_resource
+from neutron.common import exceptions as q_exc
+from neutron.common.config import cfg
 
 
 class ResourcePlugin(object):
     """
-    This is a class does some of what the Quantum plugin does, managing
-    resources in a way very similar to what Quantum does. It differ from
-    Quantum is that this provides a base plugin infrastructure, and doesn't
+    This is a class does some of what the Neutron plugin does, managing
+    resources in a way very similar to what Neutron does. It differ from
+    Neutron is that this provides a base plugin infrastructure, and doesn't
     manage any resources.
 
-    Quantum doesn't split infrastructure and implementation.
+    Neutron doesn't split infrastructure and implementation.
     """
     JOINS = ()
 
     def __init__(self, delegate):
-        # synthesize the hooks because Quantum's base class uses the
+        # synthesize the hooks because Neutron's base class uses the
         # resource name as part of the method name
         setattr(self, 'get_%s' % delegate.collection_name,
                 self._get_collection)
