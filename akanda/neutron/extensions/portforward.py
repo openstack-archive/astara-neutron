@@ -13,19 +13,19 @@
 # See the License for the specific language governing permissions and
 # limitations under the License.
 #
-# DreamHost Quantum Extensions
+# DreamHost Neutron Extensions
 # @author: Murali Raju, New Dream Network, LLC (DreamHost)
 # @author: Mark Mcclain, New Dream Network, LLC (DreamHost)
 
 from sqlalchemy.orm import exc
 
-from quantum.api import extensions
-from quantum.api.v2 import attributes
-from quantum.common import exceptions as q_exc
-from quantum.db import models_v2 as qmodels
+from neutron.api import extensions
+from neutron.api.v2 import attributes
+from neutron.common import exceptions as q_exc
+from neutron.db import models_v2 as qmodels
 
-from akanda.quantum.db import models_v2
-from akanda.quantum.extensions import _authzbase
+from akanda.neutron.db import models_v2
+from akanda.neutron.extensions import _authzbase
 
 
 class PortforwardResource(_authzbase.ResourceDelegate):

@@ -16,15 +16,15 @@
 #    under the License.
 #
 
-from quantum.plugins.openvswitch import ovs_quantum_plugin
+from neutron.plugins.openvswitch import ovs_neutron_plugin
 
-from akanda.quantum.plugins import decorators as akanda
+from akanda.neutron.plugins import decorators as akanda
 akanda.monkey_patch_ipv6_generator()
 
 
-class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
+class OVSNeutronPluginV2(ovs_neutron_plugin.OVSNeutronPluginV2):
     _supported_extension_aliases = (
-        ovs_quantum_plugin.OVSQuantumPluginV2._supported_extension_aliases +
+        ovs_neutron_plugin.OVSNeutronPluginV2._supported_extension_aliases +
         ["dhportforward", "dhaddressgroup", "dhaddressentry",
          "dhfilterrule", "dhportalias"])
 
@@ -36,13 +36,13 @@ class OVSQuantumPluginV2(ovs_quantum_plugin.OVSQuantumPluginV2):
     @akanda.auto_add_other_resources
     @akanda.auto_add_ipv6_subnet
     def create_network(self, context, network):
-        return super(OVSQuantumPluginV2, self).create_network(context, network)
+        return super(OVSNeutronPluginV2, self).create_network(context, network)
 
     @akanda.auto_add_subnet_to_router
     def create_subnet(self, context, subnet):
-        return super(OVSQuantumPluginV2, self).create_subnet(context, subnet)
+        return super(OVSNeutronPluginV2, self).create_subnet(context, subnet)
 
     @akanda.sync_subnet_gateway_port
     def update_subnet(self, context, id, subnet):
-        return super(OVSQuantumPluginV2, self).update_subnet(
+        return super(OVSNeutronPluginV2, self).update_subnet(
             context, id, subnet)

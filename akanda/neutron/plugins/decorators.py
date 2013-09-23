@@ -3,16 +3,16 @@ import netaddr
 import logging
 import random
 
-from quantum.api.v2 import attributes
-from quantum.common.config import cfg
-from quantum.common import exceptions as q_exc
-from quantum.db import db_base_plugin_v2
-from quantum.db import models_v2 as qmodels
-from quantum.db import l3_db
-from quantum import manager
+from neutron.api.v2 import attributes
+from neutron.common.config import cfg
+from neutron.common import exceptions as q_exc
+from neutron.db import db_base_plugin_v2
+from neutron.db import models_v2 as qmodels
+from neutron.db import l3_db
+from neutron import manager
 from sqlalchemy.orm import exc
 
-from akanda.quantum.db import models_v2 as akmodels
+from akanda.neutron.db import models_v2 as akmodels
 
 IPV6_ASSIGNMENT_ATTEMPTS = 1000
 LOG = logging.getLogger(__name__)
@@ -103,7 +103,7 @@ def auto_add_other_resources(f):
 
 
 def monkey_patch_ipv6_generator():
-    cls = db_base_plugin_v2.QuantumDbPluginV2
+    cls = db_base_plugin_v2.NeutronDbPluginV2
     cls._generate_mac = _wrap_generate_mac(cls._generate_mac)
     cls._generate_ip = _wrap_generate_ip(cls, cls._generate_ip)
 
@@ -159,7 +159,7 @@ def _add_subnet_to_router(context, subnet):
     if not subnet.get('gateway_ip'):
         return
 
-    plugin = manager.QuantumManager.get_plugin()
+    plugin = manager.NeutronManager.get_plugin()
 
     router_q = context.session.query(l3_db.Router)
     router_q = router_q.filter_by(tenant_id=context.tenant_id)
@@ -242,7 +242,7 @@ def _update_internal_gateway_port_ip(context, router_id, subnet):
 
     # we call into the plugin vs updating the db directly because of l3 hooks
     # baked into the plugins.
-    plugin = manager.QuantumManager.get_plugin()
+    plugin = manager.NeutronManager.get_plugin()
     port_dict = {'fixed_ips': fixed_ips}
     plugin.update_port(
         context.elevated(),
@@ -254,7 +254,7 @@ def _update_internal_gateway_port_ip(context, router_id, subnet):
 
 def _add_ipv6_subnet(context, network):
 
-    plugin = manager.QuantumManager.get_plugin()
+    plugin = manager.NeutronManager.get_plugin()
 
     try:
         subnet_generator = _ipv6_subnet_generator(
@@ -322,7 +322,7 @@ def _ipv6_subnet_generator(network_range, prefixlen):
 
 
 def _wrap_generate_mac(f):
-    """ Adds mac_address to context object instead of patch Quantum.
+    """ Adds mac_address to context object instead of patch Neutron.
 
     Annotating the object requires a less invasive change until upstream
     can be fixed in Havana.  This version works in concert with
@@ -345,7 +345,7 @@ def _wrap_generate_ip(cls, f):
     the network.
 
     NOTE: This method is intended to patch a private method on the
-    Quantum base plugin.  The method prefers to generate an IP from large IPv6
+    Neutron base plugin.  The method prefers to generate an IP from large IPv6
     subnets.  If a suitable subnet cannot be found, the method will fallback
     to the original implementation.
     """
