@@ -25,9 +25,10 @@ from neutron.extensions import portsecurity as psec
 from neutron.extensions import securitygroup as ext_sg
 from neutron.openstack.common import log as logging
 from neutron.openstack.common import rpc
-from neutron.plugins.nicira.nicira_nvp_plugin.NeutronPlugin import nicira_db
-from neutron.plugins.nicira.nicira_nvp_plugin import NeutronPlugin as nvp
-from neutron.plugins.nicira.nicira_nvp_plugin.NeutronPlugin import nvplib
+from neutron.plugins.nicira.dhcp_meta import rpc as nvp_rpc
+from neutron.plugins.nicira.NeutronPlugin import nicira_db
+from neutron.plugins.nicira import NeutronPlugin as nvp
+from neutron.plugins.nicira.NeutronPlugin import nvplib
 
 from akanda.neutron.plugins import decorators as akanda
 
@@ -67,7 +68,8 @@ nvp.nvplib._configure_extensions = akanda_nvp_ipv6_port_security_wrapper(
 )
 
 
-class AkandaNvpRpcCallbacks(l3_rpc.L3RpcCallbackMixin, nvp.NVPRpcCallbacks):
+class AkandaNvpRpcCallbacks(l3_rpc.L3RpcCallbackMixin,
+                            nvp_rpc.NVPRpcCallbacks):
     pass
 
 
@@ -81,8 +83,8 @@ class NvpPluginV2(nvp.NvpPluginV2):
         akanda.SUPPORTED_EXTENSIONS
     )
 
-    def __init__(self, loglevel=None):
-        super(NvpPluginV2, self).__init__(loglevel)
+    def __init__(self):
+        super(NvpPluginV2, self).__init__()
 
         # replace port drivers with Akanda compatible versions
         self._port_drivers = {
@@ -96,8 +98,8 @@ class NvpPluginV2(nvp.NvpPluginV2):
             }
         }
 
-    def setup_rpc(self):
-        # RPC support for dhcp + L3 protocol
+    def setup_dhcpmeta_access(self):
+        # Ok, so we're going to add L3 here too with the DHCP
         self.conn = rpc.create_connection(new=True)
         self.conn.create_consumer(
             topics.PLUGIN,
@@ -107,6 +109,11 @@ class NvpPluginV2(nvp.NvpPluginV2):
 
         # Consume from all consumers in a thread
         self.conn.consume_in_thread()
+
+        self.handle_network_dhcp_access_delegate = noop
+        self.handle_port_dhcp_access_delegate = noop
+        self.handle_port_metadata_access_delegate = noop
+        self.handle_metadata_access_delegate = noop
 
     @akanda.auto_add_other_resources
     @akanda.auto_add_ipv6_subnet
@@ -210,3 +217,6 @@ class NvpPluginV2(nvp.NvpPluginV2):
                     "on network %(net_id)s"),
                   {'port_id': port_data['id'],
                    'net_id': port_data['network_id']})
+
+def noop(*args, **kwargs):
+    pass
