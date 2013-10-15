@@ -128,10 +128,6 @@ class NvpPluginV2(nvp.NvpPluginV2):
     def create_subnet(self, context, subnet):
         return super(NvpPluginV2, self).create_subnet(context, subnet)
 
-    @akanda.sync_subnet_gateway_port
-    def update_subnet(self, context, id, subnet):
-        return super(NvpPluginV2, self).update_subnet(context, id, subnet)
-
     # we need to use original versions l3_db.L3_NAT_db_mixin mixin and not
     # NVP versions that manage NVP's logical router
 
