@@ -28,7 +28,6 @@ from neutron.openstack.common import rpc
 from neutron.plugins.nicira.dhcp_meta import rpc as nvp_rpc
 from neutron.plugins.nicira.NeutronPlugin import nicira_db
 from neutron.plugins.nicira import NeutronPlugin as nvp
-from neutron.plugins.nicira.NeutronPlugin import nvplib
 
 from akanda.neutron.plugins import decorators as akanda
 
@@ -39,9 +38,12 @@ akanda.monkey_patch_ipv6_generator()
 def akanda_nvp_ipv6_port_security_wrapper(f):
     @functools.wraps(f)
     def wrapper(lport_obj, mac_address, fixed_ips, port_security_enabled,
-                security_profiles, queue_id):
+                security_profiles, queue_id, mac_learning_enabled,
+                allowed_address_pairs):
+
         f(lport_obj, mac_address, fixed_ips, port_security_enabled,
-          security_profiles, queue_id)
+          security_profiles, queue_id, mac_learning_enabled,
+          allowed_address_pairs)
 
         # evaulate the state so that we only override the value when enabled
         # otherwise we are preserving the underlying behavior of the NVP plugin
@@ -49,6 +51,8 @@ def akanda_nvp_ipv6_port_security_wrapper(f):
             # hotfix to enable egress mulitcast
             lport_obj['allow_egress_multicast'] = True
 
+            # TODO(mark): investigate moving away from this an wrapping
+            # (create|update)_port
             # add link-local and subnet cidr for IPv6 temp addresses
             special_ipv6_addrs = akanda.get_special_ipv6_addrs(
                 (p['ip_address'] for p in lport_obj['allowed_address_pairs']),
@@ -144,6 +148,7 @@ class NvpPluginV2(nvp.NvpPluginV2):
     get_floatingip = l3_db.L3_NAT_db_mixin.get_floatingip
     get_floatings = l3_db.L3_NAT_db_mixin.get_floatingips
     _update_fip_assoc = l3_db.L3_NAT_db_mixin._update_fip_assoc
+    _update_router_gw_info = l3_db.L3_NAT_db_mixin._update_router_gw_info
     disassociate_floatingips = l3_db.L3_NAT_db_mixin.disassociate_floatingips
 
     def _ensure_metadata_host_route(self, *args, **kwargs):
@@ -153,70 +158,56 @@ class NvpPluginV2(nvp.NvpPluginV2):
     def _nvp_create_port(self, context, port_data):
         """ Driver for creating a logical switch port on NVP platform """
         # NOTE(mark): Akanda does want ports for external networks so
-        # this method is basically same with external check removed
-        network = self._get_network(context, port_data['network_id'])
-        network_binding = nicira_db.get_network_binding(
-            context.session, port_data['network_id'])
-        max_ports = self.nvp_opts.max_lp_per_overlay_ls
-        allow_extra_lswitches = False
-        if (network_binding and
-            network_binding.binding_type in (NetworkTypes.FLAT,
-                                             NetworkTypes.VLAN)):
-            max_ports = self.nvp_opts.max_lp_per_bridged_ls
-            allow_extra_lswitches = True
+        # this method is basically same with external check removed and
+        # the auto plugging of router ports
+        lport = None
+        selected_lswitch = None
         try:
-            cluster = self._find_target_cluster(port_data)
-            selected_lswitch = self._handle_lswitch_selection(
-                cluster, network, network_binding, max_ports,
-                allow_extra_lswitches)
-            lswitch_uuid = selected_lswitch['uuid']
-            lport = nvplib.create_lport(cluster,
-                                        lswitch_uuid,
-                                        port_data['tenant_id'],
-                                        port_data['id'],
-                                        port_data['name'],
-                                        port_data['device_id'],
-                                        port_data['admin_state_up'],
-                                        port_data['mac_address'],
-                                        port_data['fixed_ips'],
-                                        port_data[psec.PORTSECURITY],
-                                        port_data[ext_sg.SECURITYGROUPS])
+            selected_lswitch = self._nvp_find_lswitch_for_port(context,
+                                                               port_data)
+            lport = self._nvp_create_port_helper(self.cluster,
+                                                 selected_lswitch['uuid'],
+                                                 port_data,
+                                                 True)
             nicira_db.add_neutron_nvp_port_mapping(
                 context.session, port_data['id'], lport['uuid'])
-            d_owner = port_data['device_owner']
 
-            nvplib.plug_interface(cluster, lswitch_uuid,
-                                  lport['uuid'], "VifAttachment",
-                                  port_data['id'])
-            LOG.debug(_("_nvp_create_port completed for port %(port_name)s "
-                        "on network %(net_id)s. The new port id is "
-                        "%(port_id)s. NVP port id is %(nvp_port_id)s"),
-                      {'port_name': port_data['name'],
-                       'net_id': port_data['network_id'],
-                       'port_id': port_data['id'],
-                       'nvp_port_id': lport['uuid']})
-        except Exception:
-            # failed to create port in NVP delete port from neutron_db
-            LOG.exception(_("An exception occured while plugging "
-                            "the interface"))
-            raise
+            nvp.nvplib.plug_interface(self.cluster, selected_lswitch['uuid'],
+                                      lport['uuid'], "VifAttachment",
+                                      port_data['id'])
+
+            LOG.debug(_("_nvp_create_port completed for port %(name)s "
+                        "on network %(network_id)s. The new port id is "
+                        "%(id)s."), port_data)
+        except (nvp.NvpApiClient.NvpApiException, nvp.q_exc.NeutronException):
+            self._handle_create_port_exception(
+                context, port_data['id'],
+                selected_lswitch and selected_lswitch['uuid'],
+                lport and lport['uuid'])
 
     def _nvp_delete_port(self, context, port_data):
         # NOTE(mark): Akanda does want ports for external networks so
         # this method is basically same with external check removed
-        port = nicira_db.get_nvp_port_id(context.session, port_data['id'])
-        if port is None:
-            raise q_exc.PortNotFound(port_id=port_data['id'])
+        nvp_port_id = self._nvp_get_port_id(context, self.cluster,
+                                            port_data)
+        if not nvp_port_id:
+            LOG.debug(_("Port '%s' was already deleted on NVP platform"), id)
+            return
         # TODO(bgh): if this is a bridged network and the lswitch we just got
         # back will have zero ports after the delete we should garbage collect
         # the lswitch.
-        nvplib.delete_port(self.default_cluster,
-                           port_data['network_id'],
-                           port)
-        LOG.debug(_("_nvp_delete_port completed for port %(port_id)s "
-                    "on network %(net_id)s"),
-                  {'port_id': port_data['id'],
-                   'net_id': port_data['network_id']})
+        try:
+            nvp.nvplib.delete_port(self.cluster,
+                                   port_data['network_id'],
+                                   nvp_port_id)
+            LOG.debug(_("_nvp_delete_port completed for port %(port_id)s "
+                        "on network %(net_id)s"),
+                      {'port_id': port_data['id'],
+                       'net_id': port_data['network_id']})
+
+        except q_exc.NotFound:
+            LOG.warning(_("Port %s not found in NVP"), port_data['id'])
+
 
 def noop(*args, **kwargs):
     pass
