@@ -79,7 +79,8 @@ def auto_add_subnet_to_router(f):
         return subnet
     return wrapper
 
-
+# NOTE(mark): in Havana gateway_ip cannot be updated leaving here if this
+# returns in Icehouse.
 def sync_subnet_gateway_port(f):
     @functools.wraps(f)
     def wrapper(self, context, id, subnet):
@@ -211,6 +212,8 @@ def _update_internal_gateway_port_ip(context, router_id, subnet):
         for ip in routerport.port["fixed_ips"]
     ]
 
+    plugin = manager.NeutronManager.get_plugin()
+
     for index, ip in enumerate(fixed_ips):
         if ip['subnet_id'] == subnet['id']:
             if not subnet['gateway_ip']:
@@ -242,7 +245,6 @@ def _update_internal_gateway_port_ip(context, router_id, subnet):
 
     # we call into the plugin vs updating the db directly because of l3 hooks
     # baked into the plugins.
-    plugin = manager.NeutronManager.get_plugin()
     port_dict = {'fixed_ips': fixed_ips}
     plugin.update_port(
         context.elevated(),
