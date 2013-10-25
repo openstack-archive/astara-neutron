@@ -79,6 +79,7 @@ def auto_add_subnet_to_router(f):
         return subnet
     return wrapper
 
+
 # NOTE(mark): in Havana gateway_ip cannot be updated leaving here if this
 # returns in Icehouse.
 def sync_subnet_gateway_port(f):
