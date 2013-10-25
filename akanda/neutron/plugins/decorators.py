@@ -79,6 +79,7 @@ def auto_add_subnet_to_router(f):
         return subnet
     return wrapper
 
+
 # NOTE(mark): in Havana gateway_ip cannot be updated leaving here if this
 # returns in Icehouse.
 def sync_subnet_gateway_port(f):
@@ -168,9 +169,11 @@ def _add_subnet_to_router(context, subnet):
     router = router_q.first()
 
     if not router:
-        router_args = {'tenant_id': context.tenant_id,
-                       'name': 'ak-%s' % context.tenant_id,
-                       'admin_state_up': True}
+        router_args = {
+            'tenant_id': subnet['tenant_id'],
+            'name': 'ak-%s' % subnet['tenant_id'],
+            'admin_state_up': True
+        }
         router = plugin.create_router(context, {'router': router_args})
     if not _update_internal_gateway_port_ip(context, router['id'], subnet):
         plugin.add_router_interface(context.elevated(),
@@ -279,6 +282,7 @@ def _add_ipv6_subnet(context, network):
 
         if not existing:
             create_args = {
+                'tenant_id': network['tenant_id'],
                 'network_id': network['id'],
                 'name': '',
                 'cidr': str(candidate_cidr),
