@@ -16,6 +16,7 @@
 #    under the License.
 #
 
+from neutron.db import l3_agentschedulers_db
 from neutron.plugins.openvswitch import ovs_neutron_plugin
 
 from akanda.neutron.plugins import decorators as akanda
@@ -46,3 +47,26 @@ class OVSNeutronPluginV2(ovs_neutron_plugin.OVSNeutronPluginV2):
     def update_subnet(self, context, id, subnet):
         return super(OVSNeutronPluginV2, self).update_subnet(
             context, id, subnet)
+
+    def list_routers_on_l3_agent(self, context, agent_id):
+        # Override L3AgentSchedulerDbMixin method
+        query = context.session.query(
+            l3_agentschedulers_db.RouterL3AgentBinding.router_id
+        )
+        router_ids = [item[0] for item in query]
+        if router_ids:
+            return {'routers':
+                    self.get_routers(context, filters={'id': router_ids})}
+        else:
+            return {'routers': []}
+
+    def list_active_sync_routers_on_active_l3_agent(
+            self, context, host, router_ids):
+        # Override L3AgentSchedulerDbMixin method
+        routers = self.get_routers(context)
+        router_ids = [r['id'] for r in routers]
+        if router_ids:
+            return self.get_sync_data(context, router_ids=router_ids,
+                                      active=True)
+        else:
+            return []
