@@ -55,13 +55,10 @@ class OVSNeutronPluginV2(ovs_neutron_plugin.OVSNeutronPluginV2):
     def list_active_sync_routers_on_active_l3_agent(
             self, context, host, router_ids):
         # Override L3AgentSchedulerDbMixin method
+        filters = {}
         if router_ids:
-            routers = self.get_routers(
-                context,
-                filters={'id': router_ids},
-            )
-        else:
-            routers = self.get_routers(context)
+            filters['id'] = router_ids
+        routers = self.get_routers(context, filters=filters)
         new_router_ids = [r['id'] for r in routers]
         if new_router_ids:
             return self.get_sync_data(
