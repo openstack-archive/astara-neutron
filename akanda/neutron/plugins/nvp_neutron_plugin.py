@@ -21,8 +21,6 @@ import functools
 from neutron.common import topics
 from neutron.db import l3_db
 from neutron.db import l3_rpc_base as l3_rpc
-from neutron.extensions import portsecurity as psec
-from neutron.extensions import securitygroup as ext_sg
 from neutron.openstack.common import log as logging
 from neutron.openstack.common import rpc
 from neutron.plugins.nicira.dhcp_meta import rpc as nvp_rpc
@@ -201,7 +199,7 @@ class NvpPluginV2(nvp.NvpPluginV2):
                       {'port_id': port_data['id'],
                        'net_id': port_data['network_id']})
 
-        except q_exc.NotFound:
+        except nvp.q_exc.NotFound:
             LOG.warning(_("Port %s not found in NVP"), port_data['id'])
 
 

@@ -3,8 +3,8 @@ python:
   - "2.7"
 install:
   - pip install -r test_requirements.txt --use-mirror
-  - pip install pep8 --use-mirrors
+  - pip install flake8 --use-mirrors
   - pip install -q . --use-mirrors
 before_script:
-  - pep8 --repeat --show-source --ignore=E125 --statistics --exclude=dist,doc,*egg .
+  - flake8 --show-source --ignore=E125 --statistics akanda test setup.py
 script: nosetests -d
