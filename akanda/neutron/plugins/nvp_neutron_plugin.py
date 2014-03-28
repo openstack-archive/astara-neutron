@@ -28,6 +28,7 @@ from neutron.plugins.nicira.NeutronPlugin import nicira_db
 from neutron.plugins.nicira import NeutronPlugin as nvp
 
 from akanda.neutron.plugins import decorators as akanda
+from akanda.neutron.plugins import floatingip
 
 LOG = logging.getLogger("NeutronPlugin")
 akanda.monkey_patch_ipv6_generator()
@@ -75,7 +76,8 @@ class AkandaNvpRpcCallbacks(l3_rpc.L3RpcCallbackMixin,
     pass
 
 
-class NvpPluginV2(nvp.NvpPluginV2):
+class NvpPluginV2(floatingip.ExplicitFloatingIPAllocationMixin,
+                  nvp.NvpPluginV2):
     """
     NvpPluginV2 is a Neutron plugin that provides L2 Virtual Network
     functionality using NVP.
@@ -136,7 +138,6 @@ class NvpPluginV2(nvp.NvpPluginV2):
     get_routers = l3_db.L3_NAT_db_mixin.get_routers
     add_router_interface = l3_db.L3_NAT_db_mixin.add_router_interface
     remove_router_interface = l3_db.L3_NAT_db_mixin.remove_router_interface
-    create_floatingip = l3_db.L3_NAT_db_mixin.create_floatingip
     update_floatingip = l3_db.L3_NAT_db_mixin.update_floatingip
     delete_floatingip = l3_db.L3_NAT_db_mixin.delete_floatingip
     get_floatingip = l3_db.L3_NAT_db_mixin.get_floatingip

@@ -68,7 +68,7 @@ class AddressEntryResource(_authzbase.ResourceDelegate):
 
     def create(self, context, tenant_id, body):
         with context.session.begin(subtransactions=True):
-            #verify group_id is owned by tenant
+            # verify group_id is owned by tenant
             qry = context.session.query(models_v2.AddressGroup)
             qry = qry.filter_by(tenant_id=tenant_id, id=body.get('group_id'))
 

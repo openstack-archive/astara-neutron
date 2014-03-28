@@ -114,7 +114,7 @@ class FilterruleResource(_authzbase.ResourceDelegate):
         return self.make_dict(item)
 
     def _owns_abgroup(self, context, tenant_id, addressgroup_id):
-        #verify group_id is owned by tenant
+        # verify group_id is owned by tenant
         if addressgroup_id is None:
             return True
 
@@ -156,7 +156,7 @@ class Filterrule(object):
         return [extensions.ResourceExtension(
             'dhfilterrule',
             _authzbase.create_extension(FilterruleResource()))]
-            #_authzbase.ResourceController(FilterRuleResource()))]
+        # _authzbase.ResourceController(FilterRuleResource()))]
 
     def get_actions(self):
         return []

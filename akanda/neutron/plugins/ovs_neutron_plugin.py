@@ -19,10 +19,13 @@
 from neutron.plugins.openvswitch import ovs_neutron_plugin
 
 from akanda.neutron.plugins import decorators as akanda
+from akanda.neutron.plugins import floatingip
+
 akanda.monkey_patch_ipv6_generator()
 
 
-class OVSNeutronPluginV2(ovs_neutron_plugin.OVSNeutronPluginV2):
+class OVSNeutronPluginV2(floatingip.ExplicitFloatingIPAllocationMixin,
+                         ovs_neutron_plugin.OVSNeutronPluginV2):
     _supported_extension_aliases = (
         ovs_neutron_plugin.OVSNeutronPluginV2._supported_extension_aliases +
         ["dhportforward", "dhaddressgroup", "dhaddressentry",

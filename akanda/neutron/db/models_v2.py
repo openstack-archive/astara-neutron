@@ -153,7 +153,7 @@ class FilterRule(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
 
     @validates('ip_version')
     def validate_ip_version(self, key, ip_version):
-        if not ip_version is None:
+        if ip_version is not None:
             ip_version = int(ip_version)
             assert ip_version in (4, 6)
         return ip_version
