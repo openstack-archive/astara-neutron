@@ -123,7 +123,7 @@ class Portalias(object):
         return [extensions.ResourceExtension(
             'dhportalias',
             _authzbase.create_extension(PortaliasResource()))]
-            #_authzbase.ResourceController(PortAliasResource()))]
+        # _authzbase.ResourceController(PortAliasResource()))]
 
     def get_actions(self):
         return []

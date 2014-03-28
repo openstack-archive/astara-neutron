@@ -92,7 +92,7 @@ class PortforwardResource(_authzbase.ResourceDelegate):
 
     def create(self, context, tenant_id, body):
         with context.session.begin(subtransactions=True):
-            #verify group_id is owned by tenant
+            # verify group_id is owned by tenant
             qry = context.session.query(qmodels.Port)
             qry = qry.filter_by(tenant_id=tenant_id, id=body.get('port_id'))
 
@@ -148,7 +148,7 @@ class Portforward(object):
         return [extensions.ResourceExtension(
             'dhportforward',
             _authzbase.create_extension(PortforwardResource()))]
-            #_authzbase.ResourceController(PortforwardResource()))]
+        # _authzbase.ResourceController(PortforwardResource()))]
 
     def get_actions(self):
         return []
