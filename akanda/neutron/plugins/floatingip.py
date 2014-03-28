@@ -13,7 +13,7 @@ explicit_floating_ip_opts = [
     cfg.MultiStrOpt(
         'floatingip_subnet',
         default=[],
-        help='UUID(s) of subnet(s) from which floating IPs should be allocated',
+        help='UUID(s) of subnet(s) from which floating IPs can be allocated',
         required=True,
     ),
 ]
@@ -29,7 +29,6 @@ class ExplicitFloatingIPAllocationMixin(object):
 
     def _allocate_floatingip_from_configured_subnets(self, context):
         cfg.CONF.register_opts(explicit_floating_ip_opts, group='akanda')
-        LOG.debug('looking for floating ip on %s', str(cfg.CONF.akanda.floatingip_subnet))
         # NOTE(dhellmann): There may be a better way to do this, but
         # the "filter" argument to get_subnets() is not documented so
         # who knows.
