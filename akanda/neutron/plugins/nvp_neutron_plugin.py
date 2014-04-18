@@ -23,6 +23,7 @@ from neutron.db import l3_db
 from neutron.db import l3_rpc_base as l3_rpc
 from neutron.openstack.common import log as logging
 from neutron.openstack.common import rpc
+from neutron.plugins.nicira.common import sync as nvp_sync
 from neutron.plugins.nicira.dhcp_meta import rpc as nvp_rpc
 from neutron.plugins.nicira.NeutronPlugin import nicira_db
 from neutron.plugins.nicira import NeutronPlugin as nvp
@@ -76,6 +77,23 @@ class AkandaNvpRpcCallbacks(l3_rpc.L3RpcCallbackMixin,
     pass
 
 
+class NvpSynchronizer(nvp_sync.NvpSynchronizer):
+    """
+    The NvpSynchronizer class in Neutron runs a synchronization thread to
+    sync nvp objects with neutron objects. Since we don't use nvp's routers
+    the sync was failing making neutron showing all the routers like if the
+    were in Error state. To fix this behaviour we override the two methods
+    responsible for the routers synchronization in the NvpSynchronizer class
+    to be a noop
+
+    """
+    def _synchronize_lrouters(self, *args, **kwargs):
+        pass
+
+    def synchronize_router(self, *args, **kwargs):
+        pass
+
+
 class NvpPluginV2(floatingip.ExplicitFloatingIPAllocationMixin,
                   nvp.NvpPluginV2):
     """
@@ -101,6 +119,13 @@ class NvpPluginV2(floatingip.ExplicitFloatingIPAllocationMixin,
                 'default': self._nvp_delete_port
             }
         }
+
+        self._synchronizer = NvpSynchronizer(
+            self, self.cluster,
+            self.nvp_sync_opts.state_sync_interval,
+            self.nvp_sync_opts.min_sync_req_delay,
+            self.nvp_sync_opts.min_chunk_size,
+            self.nvp_sync_opts.max_random_sync_delay)
 
     def setup_dhcpmeta_access(self):
         # Ok, so we're going to add L3 here too with the DHCP
