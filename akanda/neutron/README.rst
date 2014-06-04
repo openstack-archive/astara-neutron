@@ -140,7 +140,8 @@ Neutron Extensions install
     "create_addressbookentry": [],
     "get_addressbookentry": [["rule:admin_or_owner"]],
     "update_addressbookentry": [["rule:admin_or_owner"]],
-    "delete_addressbookentry": [["rule:admin_or_owner"]]
+    "delete_addressbookentry": [["rule:admin_or_owner"]],
+    "update_routerstatus": [["rule:admin_only"]]
 
 11. Restart q-svc by using up arrow to retrieve the command from the history.
 

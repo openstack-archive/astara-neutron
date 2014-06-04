@@ -25,18 +25,32 @@ class RouterstatusResource(_authzbase.ResourceDelegate):
     a router's status (which is normally a read-only attribute)
     """
     model = Router
-    resource_name = 'router'
-    collection_name = 'routers'
+    resource_name = 'routerstatus'
+    collection_name = 'routerstatuses'
 
     ATTRIBUTE_MAP = {
-        'status': {'allow_post': False, 'allow_put': True, 'is_visible': True},
+        'tenant_id': {
+            'allow_post': False,
+            'allow_put': False,
+            'is_visible': False
+        },
+        'status': {
+            'allow_post': False,
+            'allow_put': True,
+            'is_visible': True,
+            'enforce_policy': True,
+            'required_by_policy': True
+        }
     }
 
     def make_dict(self, router):
         """
         Convert a router model object to a dictionary.
         """
-        return {'status': router['status']}
+        return {
+            'tenant_id': router['tenant_id'],
+            'status': router['status']
+        }
 
 
 _authzbase.register_quota('routerstatus', 'quota_routerstatus')
