@@ -27,7 +27,7 @@ class OVSNeutronPluginV2(floatingip.ExplicitFloatingIPAllocationMixin,
     _supported_extension_aliases = (
         ovs_neutron_plugin.OVSNeutronPluginV2._supported_extension_aliases +
         ["dhportforward", "dhaddressgroup", "dhaddressentry",
-         "dhfilterrule", "dhportalias"])
+         "dhfilterrule", "dhportalias", "dhrouterstatus"])
 
     try:
         _supported_extension_aliases.remove('agent_scheduler')

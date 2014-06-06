@@ -51,7 +51,7 @@ cfg.CONF.register_opts(akanda_opts)
 
 SUPPORTED_EXTENSIONS = [
     'dhportforward', 'dhaddressgroup', 'dhaddressentry', 'dhfilterrule',
-    'dhportalias'
+    'dhportalias', 'dhrouterstatus'
 ]
 
 # Provide a list of the default port aliases to be
