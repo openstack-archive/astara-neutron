@@ -15,22 +15,28 @@
 # under the License.
 
 import functools
+import os
 
 from neutron.common import topics
 from neutron.db import l3_db
 from neutron.db import l3_rpc_base as l3_rpc
+from neutron.db import api as db
+from neutron.extensions import portbindings as pbin
 from neutron.openstack.common import log as logging
 from neutron.openstack.common import rpc
 from neutron.plugins.nicira.common import sync as nvp_sync
 from neutron.plugins.nicira.dhcp_meta import rpc as nvp_rpc
 from neutron.plugins.nicira.NeutronPlugin import nicira_db
 from neutron.plugins.nicira import NeutronPlugin as nvp
+from oslo.config import cfg
 
 from akanda.neutron.plugins import decorators as akanda
 from akanda.neutron.plugins import floatingip
 
 LOG = logging.getLogger("NeutronPlugin")
 akanda.monkey_patch_ipv6_generator()
+
+NVP_EXT_PATH = os.path.join(os.path.dirname(__file__), 'extensions')
 
 
 def akanda_nvp_ipv6_port_security_wrapper(f):
@@ -118,12 +124,56 @@ class NvpPluginV2(floatingip.ExplicitFloatingIPAllocationMixin,
             }
         }
 
+        # ---------------------------------------------------------------------
+        # Note(rods):
+        # This code has been copied from our custom quantum repo
+        # https://github.com/dreamhost/quantum/blob/akanda_h2/neutron/plugins/
+        # nicira/NeutronPlugin.py#L188-L215
+        # We added this code with the only purpose to make the nsx driver use
+        # our subclass of the NvpSynchronizer object.
+        #
+        # DHC-2385
+        #
+
+        # If no api_extensions_path is provided set the following
+        if not cfg.CONF.api_extensions_path:
+            cfg.CONF.set_override('api_extensions_path', NVP_EXT_PATH)
+        self.nvp_opts = cfg.CONF.NVP
+        self.nvp_sync_opts = cfg.CONF.NVP_SYNC
+        self.cluster = nvp.create_nvp_cluster(
+            cfg.CONF,
+            self.nvp_opts.concurrent_connections,
+            self.nvp_opts.nvp_gen_timeout
+        )
+
+        self.base_binding_dict = {
+            pbin.VIF_TYPE: pbin.VIF_TYPE_OVS,
+            pbin.CAPABILITIES: {
+                pbin.CAP_PORT_FILTER:
+                'security-group' in self.supported_extension_aliases}}
+
+        db.configure_db()
+        self._extend_fault_map()
+        self.setup_dhcpmeta_access()
+        # Set this flag to false as the default gateway has not
+        # been yet updated from the config file
+        self._is_default_net_gw_in_sync = False
+
+        # Note(rods):
+        # The following line includes the only change we made to the original
+        # code
+
+        # - self._synchronizer = sync.NvpSynchronizer(
+        # + self._synchronizer = NvpSynchronizer(
+
+        # Create a synchronizer instance for backend sync
         self._synchronizer = NvpSynchronizer(
             self, self.cluster,
             self.nvp_sync_opts.state_sync_interval,
             self.nvp_sync_opts.min_sync_req_delay,
             self.nvp_sync_opts.min_chunk_size,
             self.nvp_sync_opts.max_random_sync_delay)
+        # ---------------------------------------------------------------------
 
     def setup_dhcpmeta_access(self):
         # Ok, so we're going to add L3 here too with the DHCP
