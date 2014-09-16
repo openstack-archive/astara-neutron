@@ -110,8 +110,6 @@ class NvpPluginV2(floatingip.ExplicitFloatingIPAllocationMixin,
     )
 
     def __init__(self):
-        super(NvpPluginV2, self).__init__()
-
         # replace port drivers with Akanda compatible versions
         self._port_drivers = {
             'create': {
