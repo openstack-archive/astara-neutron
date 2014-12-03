@@ -197,7 +197,7 @@ class NsxPluginV2(floatingip.ExplicitFloatingIPAllocationMixin,
         #     self.nsx_sync_opts.min_chunk_size,
         #     self.nsx_sync_opts.max_random_sync_delay)
 
-        self._synchronizer = nsx_sync.NsxSynchronizer(
+        self._synchronizer = NsxSynchronizer(
             self, self.cluster,
             self.nsx_sync_opts.state_sync_interval,
             self.nsx_sync_opts.min_sync_req_delay,
