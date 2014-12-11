@@ -16,6 +16,7 @@
 
 import functools
 
+from mock import patch
 from sqlalchemy import exc as sql_exc
 
 from neutron.api import extensions as neutron_extensions
@@ -37,6 +38,7 @@ from neutron.plugins.vmware.dhcp_meta import rpc as nsx_rpc
 from neutron.plugins.vmware.dbexts import db as nsx_db
 from neutron.plugins.vmware.nsxlib import switch as switchlib
 from neutron.plugins.vmware.plugins import base
+from neutron.plugins.vmware.plugins.base import cfg as n_cfg
 from oslo.config import cfg
 
 from akanda.neutron.plugins import decorators as akanda
@@ -89,7 +91,7 @@ class AkandaNsxRpcCallbacks(l3_rpc.L3RpcCallbackMixin,
     pass
 
 
-class NsxSynchronizer(nsx_sync.NsxSynchronizer):
+class AkandaNsxSynchronizer(nsx_sync.NsxSynchronizer):
     """
     The NsxSynchronizer class in Neutron runs a synchronization thread to
     sync nvp objects with neutron objects. Since we don't use nvp's routers
@@ -118,7 +120,23 @@ class NsxPluginV2(floatingip.ExplicitFloatingIPAllocationMixin,
     )
 
     def __init__(self):
-        super(NsxPluginV2, self).__init__()
+        # In order to force this driver to not sync neutron routers with
+        # with nsx routers, we need to use our subclass of the
+        # NsxSynchronizer object. Sadly the call to the __init__ method
+        # of the superclass instantiate a not patched NsxSynchronizer
+        # object wich spawns a sync thread that sets the state of all the
+        # neutron routers to ERROR when neutron start. To avoid the spawning
+        # of that thread we need to mock the cfg object and disable nsx
+        # synchronization during the call to the init of the superclass.
+
+        attrs = {
+            'state_sync_interval': 0,
+            'max_random_sync_delay': 0,
+            'min_sync_req_delay': 0
+        }
+        with patch.object(n_cfg.CONF, 'NSX_SYNC', **attrs):
+            super(NsxPluginV2, self).__init__()
+
         config.validate_config_options()
         # TODO(salv-orlando): Replace These dicts with
         # collections.defaultdict for better handling of default values
@@ -197,7 +215,7 @@ class NsxPluginV2(floatingip.ExplicitFloatingIPAllocationMixin,
         #     self.nsx_sync_opts.min_chunk_size,
         #     self.nsx_sync_opts.max_random_sync_delay)
 
-        self._synchronizer = NsxSynchronizer(
+        self._synchronizer = AkandaNsxSynchronizer(
             self, self.cluster,
             self.nsx_sync_opts.state_sync_interval,
             self.nsx_sync_opts.min_sync_req_delay,
