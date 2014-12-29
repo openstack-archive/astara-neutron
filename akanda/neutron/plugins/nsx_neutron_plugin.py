@@ -107,6 +107,14 @@ class AkandaNsxSynchronizer(nsx_sync.NsxSynchronizer):
     def synchronize_router(self, *args, **kwargs):
         pass
 
+    def synchronize_port(self, *args, **kwargs):
+        LOG.debug("Attempting to call synchronize_port(%s)", args)
+        try:
+            super(AkandaNsxSynchronizer, self).synchronize_port(*args, **kwargs)
+        except (DBError, StaleDataError) as db_exc:
+            LOG.exception("Encountered database error while updating the port.")
+            pass
+
 
 class NsxPluginV2(floatingip.ExplicitFloatingIPAllocationMixin,
                   base.NsxPluginV2):
