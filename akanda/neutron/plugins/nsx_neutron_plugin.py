@@ -19,19 +19,15 @@ import functools
 from mock import patch
 from sqlalchemy import exc as sql_exc
 
-from neutron.api import extensions as neutron_extensions
 from neutron.common import constants
 from neutron.common import exceptions as n_exc
 from neutron.common import topics
 from neutron.db import l3_db
 from neutron.db import l3_rpc_base as l3_rpc
-from neutron.extensions import portbindings as pbin
 from neutron.openstack.common import log as logging
 from neutron.openstack.common import rpc
 from neutron.openstack.common.db import exception as db_exc
-from neutron.plugins import vmware
 from neutron.plugins.vmware.api_client import exception as api_exc
-from neutron.plugins.vmware.common import config
 from neutron.plugins.vmware.common import nsx_utils
 from neutron.plugins.vmware.common import sync as nsx_sync
 from neutron.plugins.vmware.dhcp_meta import rpc as nsx_rpc
@@ -39,7 +35,6 @@ from neutron.plugins.vmware.dbexts import db as nsx_db
 from neutron.plugins.vmware.nsxlib import switch as switchlib
 from neutron.plugins.vmware.plugins import base
 from neutron.plugins.vmware.plugins.base import cfg as n_cfg
-from oslo.config import cfg
 
 from akanda.neutron.plugins import decorators as akanda
 from akanda.neutron.plugins import floatingip
@@ -168,13 +163,6 @@ class NsxPluginV2(floatingip.ExplicitFloatingIPAllocationMixin,
         with patch.object(n_cfg.CONF, 'NSX_SYNC', **attrs):
             super(NsxPluginV2, self).__init__()
 
-        config.validate_config_options()
-        # TODO(salv-orlando): Replace These dicts with
-        # collections.defaultdict for better handling of default values
-        # Routines for managing logical ports in NSX
-        self.port_special_owners = [l3_db.DEVICE_OWNER_ROUTER_GW,
-                                    l3_db.DEVICE_OWNER_ROUTER_INTF]
-
         # ---------------------------------------------------------------------
         # Original code:
         # self._port_drivers = {
@@ -210,26 +198,6 @@ class NsxPluginV2(floatingip.ExplicitFloatingIPAllocationMixin,
         }
         # ---------------------------------------------------------------------
 
-        neutron_extensions.append_api_extensions_path([vmware.NSX_EXT_PATH])
-        self.nsx_opts = cfg.CONF.NSX
-        self.nsx_sync_opts = cfg.CONF.NSX_SYNC
-        self.cluster = nsx_utils.create_nsx_cluster(
-            cfg.CONF,
-            self.nsx_opts.concurrent_connections,
-            self.nsx_opts.nsx_gen_timeout)
-
-        self.base_binding_dict = {
-            pbin.VIF_TYPE: pbin.VIF_TYPE_OVS,
-            pbin.VIF_DETAILS: {
-                # TODO(rkukura): Replace with new VIF security details
-                pbin.CAP_PORT_FILTER:
-                'security-group' in self.supported_extension_aliases}}
-
-        self._extend_fault_map()
-        self.setup_dhcpmeta_access()
-        # Set this flag to false as the default gateway has not
-        # been yet updated from the config file
-        self._is_default_net_gw_in_sync = False
         # Create a synchronizer instance for backend sync
         # ---------------------------------------------------------------------
         # Note(rods):
