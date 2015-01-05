@@ -101,21 +101,42 @@ class AkandaNsxSynchronizer(nsx_sync.NsxSynchronizer):
     to be a noop
 
     """
+
+    def _synchronize_state(self, *args, **kwargs):
+        """
+        Given the complexicity of the NSX synchronization process, there are
+        about a million ways for it to go wrong. (MySQL connection issues,
+        transactional race conditions, etc...)  In the event that an exception
+        is thrown, behavior of the upstream implementation is to immediately
+        report the exception and kill the synchronizer thread.
+
+        This makes it very difficult to detect failure (because the thread just
+        ends) and the problem can only be fixed by completely restarting
+        neutron.
+
+        This implementation changes the behavior to repeatedly fail (and retry)
+        and log verbosely during failure so that the failure is more obvious
+        (and so that auto-recovery is a possibility if e.g., the database
+        comes back to life or a network-related issue becomes resolved).
+        """
+        try:
+            return super(AkandaNsxSynchronizer, self)._synchronize_state(
+                *args, **kwargs
+            )
+        except:
+            LOG.exception("An error occurred while communicating with "
+                          "NSX backend. Will retry synchronization "
+                          "in %d seconds" % self._sync_backoff)
+            self._sync_backoff = min(self._sync_backoff * 2, 64)
+            return self._sync_backoff
+        else:
+            self._sync_backoff = 1
+
     def _synchronize_lrouters(self, *args, **kwargs):
         pass
 
     def synchronize_router(self, *args, **kwargs):
         pass
-
-    def synchronize_port(self, *args, **kwargs):
-        LOG.debug("Attempting to call synchronize_port(%s)", args)
-        try:
-            super(AkandaNsxSynchronizer,
-                  self).synchronize_port(*args, **kwargs)
-        except (sql_exc.DBError, sql_exc.StaleDataError):
-            LOG.exception("Encountered database error while updating the "
-                          "port.")
-            pass
 
 
 class NsxPluginV2(floatingip.ExplicitFloatingIPAllocationMixin,
