@@ -120,8 +120,8 @@ class AkandaNsxSynchronizer(nsx_sync.NsxSynchronizer):
         comes back to life or a network-related issue becomes resolved).
         """
         try:
-            return super(AkandaNsxSynchronizer, self)._synchronize_state(
-                *args, **kwargs
+            return nsx_sync.NsxSynchronizer._synchronize_state(
+                self, *args, **kwargs
             )
         except:
             LOG.exception("An error occurred while communicating with "
