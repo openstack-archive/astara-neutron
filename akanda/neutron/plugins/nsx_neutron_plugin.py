@@ -16,7 +16,6 @@
 
 import functools
 
-from mock import patch
 from sqlalchemy import exc as sql_exc
 
 from neutron.common import constants
@@ -147,21 +146,24 @@ class NsxPluginV2(floatingip.ExplicitFloatingIPAllocationMixin,
 
     def __init__(self):
         # In order to force this driver to not sync neutron routers with
-        # with nsx routers, we need to use our subclass of the
-        # NsxSynchronizer object. Sadly the call to the __init__ method
-        # of the superclass instantiate a not patched NsxSynchronizer
+        # with NSX routers, we need to use our subclass of the
+        # NsxSynchronizer object. Sadly, the call to the __init__ method
+        # of the superclass instantiates a non-customizable NsxSynchronizer
         # object wich spawns a sync thread that sets the state of all the
-        # neutron routers to ERROR when neutron start. To avoid the spawning
-        # of that thread we need to mock the cfg object and disable nsx
-        # synchronization during the call to the init of the superclass.
+        # neutron routers to ERROR when neutron starts. To avoid spawning
+        # that thread, we need to temporarily override the cfg object and
+        # disable NSX synchronization in the superclass constructor.
 
-        attrs = {
-            'state_sync_interval': 0,
-            'max_random_sync_delay': 0,
-            'min_sync_req_delay': 0
+        actual = {
+            'state_sync_interval': n_cfg.CONF.NSX_SYNC.state_sync_interval,
+            'max_random_sync_delay': n_cfg.CONF.NSX_SYNC.max_random_sync_delay,
+            'min_sync_req_delay': n_cfg.CONF.NSX_SYNC.min_sync_req_delay
         }
-        with patch.object(n_cfg.CONF, 'NSX_SYNC', **attrs):
-            super(NsxPluginV2, self).__init__()
+        for key in actual:
+            n_cfg.CONF.set_override(key, 0, 'NSX_SYNC')
+        super(NsxPluginV2, self).__init__()
+        for key, value in actual.items():
+            n_cfg.CONF.set_override(key, value, 'NSX_SYNC')
 
         # ---------------------------------------------------------------------
         # Original code:
