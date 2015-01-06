@@ -26,9 +26,7 @@ setup(
     author_email='dev-community@dreamhost.com',
     url='http://github.com/dreamhost/akanda',
     license='BSD',
-    install_requires=[
-        'mock'
-    ],
+    install_requires=[],
     namespace_packages=['akanda'],
     packages=find_packages(exclude=['test', 'smoke']),
     include_package_data=True,
