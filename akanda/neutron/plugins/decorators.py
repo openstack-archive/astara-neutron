@@ -27,6 +27,8 @@ from neutron.db import db_base_plugin_v2
 from neutron.db import models_v2 as qmodels
 from neutron.db import l3_db
 from neutron import manager
+
+from neutron.plugins.common import constants
 from sqlalchemy.orm import exc
 
 from akanda.neutron.db import models_v2 as akmodels
@@ -178,7 +180,8 @@ def _add_subnet_to_router(context, subnet):
     if not subnet.get('gateway_ip'):
         return
 
-    plugin = manager.NeutronManager.get_plugin()
+    service_plugin = manager.NeutronManager.get_service_plugins().get(
+        constants.L3_ROUTER_NAT)
 
     router_q = context.session.query(l3_db.Router)
     router_q = router_q.filter_by(tenant_id=context.tenant_id)
@@ -191,11 +194,11 @@ def _add_subnet_to_router(context, subnet):
             'name': 'ak-%s' % subnet['tenant_id'],
             'admin_state_up': True
         }
-        router = plugin.create_router(context, {'router': router_args})
+        router = service_plugin.create_router(context, {'router': router_args})
     if not _update_internal_gateway_port_ip(context, router['id'], subnet):
-        plugin.add_router_interface(context.elevated(),
-                                    router['id'],
-                                    {'subnet_id': subnet['id']})
+        service_plugin.add_router_interface(context.elevated(),
+                                            router['id'],
+                                            {'subnet_id': subnet['id']})
 
 
 def _update_internal_gateway_port_ip(context, router_id, subnet):
