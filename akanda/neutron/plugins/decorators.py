@@ -236,6 +236,8 @@ def _update_internal_gateway_port_ip(context, router_id, subnet):
     ]
 
     plugin = manager.NeutronManager.get_plugin()
+    service_plugin = manager.NeutronManager.get_service_plugins().get(
+        constants.L3_ROUTER_NAT)
 
     for index, ip in enumerate(fixed_ips):
         if ip['subnet_id'] == subnet['id']:
@@ -248,7 +250,7 @@ def _update_internal_gateway_port_ip(context, router_id, subnet):
             break
     else:
         try:
-            plugin._check_for_dup_router_subnet(
+            service_plugin._check_for_dup_router_subnet(
                 context,
                 routerport.router,
                 subnet['network_id'],
