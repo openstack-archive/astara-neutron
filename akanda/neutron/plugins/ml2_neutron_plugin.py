@@ -14,6 +14,7 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from neutron.db import l3_db
 from neutron.plugins.ml2 import plugin
 from neutron.services.l3_router import l3_router_plugin
 
@@ -53,6 +54,13 @@ class Ml2Plugin(floatingip.ExplicitFloatingIPAllocationMixin,
 
 
 class L3RouterPlugin(l3_router_plugin.L3RouterPlugin):
+
+    # An issue in neutron is making this class inheriting some
+    # methods from l3_dvr_db.L3_NAT_with_dvr_db_mixin.As a workaround
+    # we force it to use the original methods in the
+    # l3_db.L3_NAT_db_mixin class.
+    get_sync_data = l3_db.L3_NAT_db_mixin.get_sync_data
+    add_router_interface = l3_db.L3_NAT_db_mixin.add_router_interface
 
     def list_routers_on_l3_agent(self, context, agent_id):
         return {
