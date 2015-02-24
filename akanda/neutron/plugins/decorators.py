@@ -254,7 +254,8 @@ def _update_internal_gateway_port_ip(context, router_id, subnet):
                 context,
                 routerport.router,
                 subnet['network_id'],
-                subnet
+                subnet['id'],
+                subnet['cidr']
             )
         except:
             LOG.info(
