@@ -14,17 +14,17 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import logging
+
+from oslo.config import cfg
 
 from neutron.api.v2 import attributes
 from neutron.common import exceptions as q_exc
 from neutron.db.l3_db import DEVICE_OWNER_FLOATINGIP, FloatingIP
 from neutron.openstack.common import uuidutils
-from neutron.openstack.common import log
-
-from oslo.config import cfg
 
 
-LOG = log.getLogger(__name__)
+LOG = logging.getLogger(__name__)
 
 explicit_floating_ip_opts = [
     cfg.ListOpt(

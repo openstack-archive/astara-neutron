@@ -26,7 +26,10 @@ from sqlalchemy.orm import validates
 
 from neutron.db import model_base
 from neutron.db import models_v2
-from neutron.openstack.common import timeutils
+try:
+    from oslo_utils import timeutils
+except ImportError:
+    from neutron.openstack.common import timeutils
 
 
 def validate_port_number(port):
