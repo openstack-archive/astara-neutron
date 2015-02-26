@@ -61,6 +61,7 @@ class L3RouterPlugin(l3_router_plugin.L3RouterPlugin):
     # l3_db.L3_NAT_db_mixin class.
     get_sync_data = l3_db.L3_NAT_db_mixin.get_sync_data
     add_router_interface = l3_db.L3_NAT_db_mixin.add_router_interface
+    remove_router_interface = l3_db.L3_NAT_db_mixin.remove_router_interface
 
     def list_routers_on_l3_agent(self, context, agent_id):
         return {
