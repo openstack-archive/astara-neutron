@@ -39,7 +39,6 @@ from akanda.neutron.plugins import decorators as akanda
 from akanda.neutron.plugins import floatingip
 
 LOG = logging.getLogger("NeutronPlugin")
-akanda.monkey_patch_ipv6_generator()
 
 
 def akanda_nvp_ipv6_port_security_wrapper(f):

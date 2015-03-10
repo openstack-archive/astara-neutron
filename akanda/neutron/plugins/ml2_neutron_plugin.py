@@ -21,8 +21,6 @@ from neutron.services.l3_router import l3_router_plugin
 from akanda.neutron.plugins import decorators as akanda
 from akanda.neutron.plugins import floatingip
 
-akanda.monkey_patch_ipv6_generator()
-
 
 class Ml2Plugin(floatingip.ExplicitFloatingIPAllocationMixin,
                 plugin.Ml2Plugin):
