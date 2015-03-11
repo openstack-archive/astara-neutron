@@ -23,7 +23,6 @@ import random
 from neutron.api.v2 import attributes
 from neutron.common.config import cfg
 from neutron.common import exceptions as q_exc
-from neutron.db import db_base_plugin_v2
 from neutron.db import models_v2 as qmodels
 from neutron.db import l3_db
 from neutron import manager
@@ -121,12 +120,6 @@ def auto_add_other_resources(f):
             _auto_add_address_groups(context)
         return retval
     return wrapper
-
-
-def monkey_patch_ipv6_generator():
-    cls = db_base_plugin_v2.NeutronDbPluginV2
-    cls._generate_mac = _wrap_generate_mac(cls._generate_mac)
-    cls._generate_ip = _wrap_generate_ip(cls, cls._generate_ip)
 
 
 def check_subnet_cidr_meets_policy(context, subnet):
@@ -310,7 +303,9 @@ def _add_ipv6_subnet(context, network):
                 'name': '',
                 'cidr': str(candidate_cidr),
                 'ip_version': candidate_cidr.version,
-                'enable_dhcp': False,
+                'enable_dhcp': True,
+                'ipv6_address_mode': 'slaac',
+                'ipv6_ra_mode': 'slaac',
                 'gateway_ip': attributes.ATTR_NOT_SPECIFIED,
                 'dns_nameservers': attributes.ATTR_NOT_SPECIFIED,
                 'host_routes': attributes.ATTR_NOT_SPECIFIED,
@@ -350,67 +345,8 @@ def _ipv6_subnet_generator(network_range, prefixlen):
         yield candidate_cidr
 
 
-def _wrap_generate_mac(f):
-    """ Adds mac_address to context object instead of patch Neutron.
-
-    Annotating the object requires a less invasive change until upstream
-    can be fixed in Havana.  This version works in concert with
-    _generate_ip below to make IPv6 stateless addresses correctly.
-    """
-
-    @staticmethod
-    @functools.wraps(f)
-    def wrapper(context, network_id):
-        mac_addr = f(context, network_id)
-        context.mac_address = mac_addr
-        return mac_addr
-    return wrapper
-
-
-def _wrap_generate_ip(cls, f):
-    """Generate an IP address.
-
-    The IP address will be generated from one of the subnets defined on
-    the network.
-
-    NOTE: This method is intended to patch a private method on the
-    Neutron base plugin.  The method prefers to generate an IP from large IPv6
-    subnets.  If a suitable subnet cannot be found, the method will fallback
-    to the original implementation.
-    """
-
-    @staticmethod
-    @functools.wraps(f)
-    def wrapper(context, subnets):
-        if hasattr(context, 'mac_address'):
-            for subnet in subnets:
-                if subnet['ip_version'] != 6:
-                    continue
-                elif netaddr.IPNetwork(subnet['cidr']).prefixlen <= 64:
-                    network_id = subnet['network_id']
-                    subnet_id = subnet['id']
-                    candidate = _generate_ipv6_address(
-                        subnet['cidr'],
-                        context.mac_address
-                    )
-
-                    if cls._check_unique_ip(context, network_id, subnet_id,
-                                            candidate):
-                        cls._allocate_specific_ip(
-                            context,
-                            subnet_id,
-                            candidate
-                        )
-                        return {
-                            'ip_address': candidate,
-                            'subnet_id': subnet_id
-                        }
-
-        # otherwise fallback to built-in versio
-        return f(context, subnets)
-    return wrapper
-
-
+# Note(rods): we need to keep this method untill the nsx driver won't
+# be updated to use neutron's native support for slaac
 def _generate_ipv6_address(cidr, mac_address):
     network = netaddr.IPNetwork(cidr)
     tokens = ['%02x' % int(t, 16) for t in mac_address.split(':')]
