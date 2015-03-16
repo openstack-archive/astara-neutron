@@ -18,18 +18,18 @@ import functools
 
 from sqlalchemy import exc as sql_exc
 
+from neutron.api.rpc.handlers import dhcp_rpc, l3_rpc
 from neutron.common import constants
 from neutron.common import exceptions as n_exc
+from neutron.common import rpc as n_rpc
 from neutron.common import topics
+from neutron.db import agents_db
 from neutron.db import l3_db
-from neutron.db import l3_rpc_base as l3_rpc
 from neutron.openstack.common import log as logging
-from neutron.openstack.common import rpc
-from neutron.openstack.common.db import exception as db_exc
+from oslo.db import exception as db_exc
 from neutron.plugins.vmware.api_client import exception as api_exc
 from neutron.plugins.vmware.common import nsx_utils
 from neutron.plugins.vmware.common import sync as nsx_sync
-from neutron.plugins.vmware.dhcp_meta import rpc as nsx_rpc
 from neutron.plugins.vmware.dbexts import db as nsx_db
 from neutron.plugins.vmware.nsxlib import switch as switchlib
 from neutron.plugins.vmware.plugins import base
@@ -76,12 +76,6 @@ def akanda_nvp_ipv6_port_security_wrapper(f):
 base.switchlib._configure_extensions = akanda_nvp_ipv6_port_security_wrapper(
     base.switchlib._configure_extensions
 )
-
-
-class AkandaNsxRpcCallbacks(l3_rpc.L3RpcCallbackMixin,
-                            nsx_rpc.NSXRpcCallbacks):
-    """ Class TODO:(rods)"""
-    pass
 
 
 class AkandaNsxSynchronizer(nsx_sync.NsxSynchronizer):
@@ -225,15 +219,21 @@ class NsxPluginV2(floatingip.ExplicitFloatingIPAllocationMixin,
 
     def setup_dhcpmeta_access(self):
         # Ok, so we're going to add L3 here too with the DHCP
-        self.conn = rpc.create_connection(new=True)
+        self.conn = n_rpc.create_connection(new=True)
         self.conn.create_consumer(
             topics.PLUGIN,
-            AkandaNsxRpcCallbacks().create_rpc_dispatcher(),
+            [dhcp_rpc.DhcpRpcCallback(), agents_db.AgentExtRpcCallback()],
+            fanout=False
+        )
+
+        self.conn.create_consumer(
+            topics.L3PLUGIN,
+            [l3_rpc.L3RpcCallback()],
             fanout=False
         )
 
         # Consume from all consumers in a thread
-        self.conn.consume_in_thread()
+        self.conn.consume_in_threads()
 
         self.handle_network_dhcp_access_delegate = noop
         self.handle_port_dhcp_access_delegate = noop
