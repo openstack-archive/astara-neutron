@@ -240,7 +240,6 @@ class NsxPluginV2(floatingip.ExplicitFloatingIPAllocationMixin,
         self.handle_port_metadata_access_delegate = noop
         self.handle_metadata_access_delegate = noop
 
-    @akanda.auto_add_other_resources
     @akanda.auto_add_ipv6_subnet
     def create_network(self, context, network):
         return super(NsxPluginV2, self).create_network(context, network)
