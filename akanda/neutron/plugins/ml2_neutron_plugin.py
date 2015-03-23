@@ -30,13 +30,6 @@ class Ml2Plugin(floatingip.ExplicitFloatingIPAllocationMixin,
         ["dhrouterstatus"]
     )
 
-    # The auto_add_other_resources decorator enable the automatic
-    # creation of a bunch of resources. These resources are in the
-    # form of neutron extensions and need to be registered with the
-    # plugin. Since we are not enabling those extension right now,
-    # lets comment out the decorator
-
-    # @akanda.auto_add_other_resources
     @akanda.auto_add_ipv6_subnet
     def create_network(self, context, network):
         return super(Ml2Plugin, self).create_network(context, network)
