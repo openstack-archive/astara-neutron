@@ -14,39 +14,45 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from neutron.plugins.openvswitch import ovs_neutron_plugin
+from neutron.db import l3_db
+from neutron.plugins.ml2 import plugin
+from neutron.services.l3_router import l3_router_plugin
 
 from akanda.neutron.plugins import decorators as akanda
 from akanda.neutron.plugins import floatingip
 
-akanda.monkey_patch_ipv6_generator()
 
+class Ml2Plugin(floatingip.ExplicitFloatingIPAllocationMixin,
+                plugin.Ml2Plugin):
 
-class OVSNeutronPluginV2(floatingip.ExplicitFloatingIPAllocationMixin,
-                         ovs_neutron_plugin.OVSNeutronPluginV2):
     _supported_extension_aliases = (
-        ovs_neutron_plugin.OVSNeutronPluginV2._supported_extension_aliases +
-        ["dhportforward", "dhaddressgroup", "dhaddressentry",
-         "dhfilterrule", "dhportalias", "dhrouterstatus"])
+        plugin.Ml2Plugin._supported_extension_aliases +
+        ["dhrouterstatus"]
+    )
 
-    try:
-        _supported_extension_aliases.remove('agent_scheduler')
-    except ValueError:
-        pass
-
-    @akanda.auto_add_other_resources
     @akanda.auto_add_ipv6_subnet
     def create_network(self, context, network):
-        return super(OVSNeutronPluginV2, self).create_network(context, network)
+        return super(Ml2Plugin, self).create_network(context, network)
 
     @akanda.auto_add_subnet_to_router
     def create_subnet(self, context, subnet):
-        return super(OVSNeutronPluginV2, self).create_subnet(context, subnet)
+        return super(Ml2Plugin, self).create_subnet(context, subnet)
 
     @akanda.sync_subnet_gateway_port
     def update_subnet(self, context, id, subnet):
-        return super(OVSNeutronPluginV2, self).update_subnet(
+        return super(Ml2Plugin, self).update_subnet(
             context, id, subnet)
+
+
+class L3RouterPlugin(l3_router_plugin.L3RouterPlugin):
+
+    # An issue in neutron is making this class inheriting some
+    # methods from l3_dvr_db.L3_NAT_with_dvr_db_mixin.As a workaround
+    # we force it to use the original methods in the
+    # l3_db.L3_NAT_db_mixin class.
+    get_sync_data = l3_db.L3_NAT_db_mixin.get_sync_data
+    add_router_interface = l3_db.L3_NAT_db_mixin.add_router_interface
+    remove_router_interface = l3_db.L3_NAT_db_mixin.remove_router_interface
 
     def list_routers_on_l3_agent(self, context, agent_id):
         return {

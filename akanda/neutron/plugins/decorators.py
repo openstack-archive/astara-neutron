@@ -23,13 +23,12 @@ import random
 from neutron.api.v2 import attributes
 from neutron.common.config import cfg
 from neutron.common import exceptions as q_exc
-from neutron.db import db_base_plugin_v2
 from neutron.db import models_v2 as qmodels
 from neutron.db import l3_db
 from neutron import manager
-from sqlalchemy.orm import exc
 
-from akanda.neutron.db import models_v2 as akmodels
+from neutron.plugins.common import constants
+
 
 IPV6_ASSIGNMENT_ATTEMPTS = 1000
 LOG = logging.getLogger(__name__)
@@ -50,29 +49,7 @@ akanda_opts = [
 cfg.CONF.register_opts(akanda_opts)
 
 SUPPORTED_EXTENSIONS = [
-    'dhportforward', 'dhaddressgroup', 'dhaddressentry', 'dhfilterrule',
-    'dhportalias', 'dhrouterstatus'
-]
-
-# Provide a list of the default port aliases to be
-# created for a tenant.
-# FIXME(dhellmann): This list should come from
-# a configuration file somewhere.
-DEFAULT_PORT_ALIASES = [
-    ('tcp', 0, 'Any TCP'),
-    ('udp', 0, 'Any UDP'),
-    ('tcp', 22, 'ssh'),
-    ('udp', 53, 'DNS'),
-    ('tcp', 80, 'HTTP'),
-    ('tcp', 443, 'HTTPS'),
-]
-
-# Provide a list of the default address entries
-# to be created for a tenant.
-# FIXME(dhellmann): This list should come from
-# a configuration file somewhere.
-DEFAULT_ADDRESS_GROUPS = [
-    ('Any', [('Any', '0.0.0.0/0')]),
+    'dhrouterstatus',
 ]
 
 
@@ -107,24 +84,6 @@ def sync_subnet_gateway_port(f):
         _update_internal_gateway_port_ip(context, retval)
         return retval
     return wrapper
-
-
-def auto_add_other_resources(f):
-    @functools.wraps(f)
-    def wrapper(self, context, *args, **kwargs):
-        LOG.debug('auto_add_other_resources')
-        retval = f(self, context, *args, **kwargs)
-        if not context.is_admin:
-            _auto_add_port_aliases(context)
-            _auto_add_address_groups(context)
-        return retval
-    return wrapper
-
-
-def monkey_patch_ipv6_generator():
-    cls = db_base_plugin_v2.NeutronDbPluginV2
-    cls._generate_mac = _wrap_generate_mac(cls._generate_mac)
-    cls._generate_ip = _wrap_generate_ip(cls, cls._generate_ip)
 
 
 def check_subnet_cidr_meets_policy(context, subnet):
@@ -178,7 +137,8 @@ def _add_subnet_to_router(context, subnet):
     if not subnet.get('gateway_ip'):
         return
 
-    plugin = manager.NeutronManager.get_plugin()
+    service_plugin = manager.NeutronManager.get_service_plugins().get(
+        constants.L3_ROUTER_NAT)
 
     router_q = context.session.query(l3_db.Router)
     router_q = router_q.filter_by(tenant_id=context.tenant_id)
@@ -191,11 +151,11 @@ def _add_subnet_to_router(context, subnet):
             'name': 'ak-%s' % subnet['tenant_id'],
             'admin_state_up': True
         }
-        router = plugin.create_router(context, {'router': router_args})
+        router = service_plugin.create_router(context, {'router': router_args})
     if not _update_internal_gateway_port_ip(context, router['id'], subnet):
-        plugin.add_router_interface(context.elevated(),
-                                    router['id'],
-                                    {'subnet_id': subnet['id']})
+        service_plugin.add_router_interface(context.elevated(),
+                                            router['id'],
+                                            {'subnet_id': subnet['id']})
 
 
 def _update_internal_gateway_port_ip(context, router_id, subnet):
@@ -233,6 +193,8 @@ def _update_internal_gateway_port_ip(context, router_id, subnet):
     ]
 
     plugin = manager.NeutronManager.get_plugin()
+    service_plugin = manager.NeutronManager.get_service_plugins().get(
+        constants.L3_ROUTER_NAT)
 
     for index, ip in enumerate(fixed_ips):
         if ip['subnet_id'] == subnet['id']:
@@ -245,11 +207,12 @@ def _update_internal_gateway_port_ip(context, router_id, subnet):
             break
     else:
         try:
-            plugin._check_for_dup_router_subnet(
+            service_plugin._check_for_dup_router_subnet(
                 context,
                 routerport.router,
                 subnet['network_id'],
-                subnet
+                subnet['id'],
+                subnet['cidr']
             )
         except:
             LOG.info(
@@ -304,7 +267,9 @@ def _add_ipv6_subnet(context, network):
                 'name': '',
                 'cidr': str(candidate_cidr),
                 'ip_version': candidate_cidr.version,
-                'enable_dhcp': False,
+                'enable_dhcp': True,
+                'ipv6_address_mode': 'slaac',
+                'ipv6_ra_mode': 'slaac',
                 'gateway_ip': attributes.ATTR_NOT_SPECIFIED,
                 'dns_nameservers': attributes.ATTR_NOT_SPECIFIED,
                 'host_routes': attributes.ATTR_NOT_SPECIFIED,
@@ -344,67 +309,8 @@ def _ipv6_subnet_generator(network_range, prefixlen):
         yield candidate_cidr
 
 
-def _wrap_generate_mac(f):
-    """ Adds mac_address to context object instead of patch Neutron.
-
-    Annotating the object requires a less invasive change until upstream
-    can be fixed in Havana.  This version works in concert with
-    _generate_ip below to make IPv6 stateless addresses correctly.
-    """
-
-    @staticmethod
-    @functools.wraps(f)
-    def wrapper(context, network_id):
-        mac_addr = f(context, network_id)
-        context.mac_address = mac_addr
-        return mac_addr
-    return wrapper
-
-
-def _wrap_generate_ip(cls, f):
-    """Generate an IP address.
-
-    The IP address will be generated from one of the subnets defined on
-    the network.
-
-    NOTE: This method is intended to patch a private method on the
-    Neutron base plugin.  The method prefers to generate an IP from large IPv6
-    subnets.  If a suitable subnet cannot be found, the method will fallback
-    to the original implementation.
-    """
-
-    @staticmethod
-    @functools.wraps(f)
-    def wrapper(context, subnets):
-        if hasattr(context, 'mac_address'):
-            for subnet in subnets:
-                if subnet['ip_version'] != 6:
-                    continue
-                elif netaddr.IPNetwork(subnet['cidr']).prefixlen <= 64:
-                    network_id = subnet['network_id']
-                    subnet_id = subnet['id']
-                    candidate = _generate_ipv6_address(
-                        subnet['cidr'],
-                        context.mac_address
-                    )
-
-                    if cls._check_unique_ip(context, network_id, subnet_id,
-                                            candidate):
-                        cls._allocate_specific_ip(
-                            context,
-                            subnet_id,
-                            candidate
-                        )
-                        return {
-                            'ip_address': candidate,
-                            'subnet_id': subnet_id
-                        }
-
-        # otherwise fallback to built-in versio
-        return f(context, subnets)
-    return wrapper
-
-
+# Note(rods): we need to keep this method untill the nsx driver won't
+# be updated to use neutron's native support for slaac
 def _generate_ipv6_address(cidr, mac_address):
     network = netaddr.IPNetwork(cidr)
     tokens = ['%02x' % int(t, 16) for t in mac_address.split(':')]
@@ -412,71 +318,3 @@ def _generate_ipv6_address(cidr, mac_address):
 
     # the bit inversion is required by the RFC
     return str(netaddr.IPAddress(network.value + (eui64 ^ 0x0200000000000000)))
-
-
-def _auto_add_address_groups(context):
-    """Create default address groups if the tenant does not have them. """
-    for ag_name, entries in DEFAULT_ADDRESS_GROUPS:
-        ag_q = context.session.query(akmodels.AddressGroup)
-        ag_q = ag_q.filter_by(
-            tenant_id=context.tenant_id,
-            name=ag_name,
-        )
-        try:
-            address_group = ag_q.one()
-        except exc.NoResultFound:
-            with context.session.begin(subtransactions=True):
-                address_group = akmodels.AddressGroup(
-                    name=ag_name,
-                    tenant_id=context.tenant_id,
-                )
-                context.session.add(address_group)
-                LOG.debug('Created default address group %s',
-                          address_group.name)
-
-        for entry_name, cidr in entries:
-            entry_q = context.session.query(akmodels.AddressEntry)
-            entry_q = entry_q.filter_by(
-                group=address_group,
-                name=entry_name,
-                cidr=cidr,
-            )
-            try:
-                entry_q.one()
-            except exc.NoResultFound:
-                with context.session.begin(subtransactions=True):
-                    entry = akmodels.AddressEntry(
-                        name=entry_name,
-                        group=address_group,
-                        cidr=cidr,
-                        tenant_id=context.tenant_id,
-                    )
-                    context.session.add(entry)
-                    LOG.debug(
-                        'Created default entry for %s in address group %s',
-                        cidr, address_group.name)
-
-
-def _auto_add_port_aliases(context):
-    """Create the default port aliases for the current tenant, if
-    they don't already exist.
-    """
-    for protocol, port, name in DEFAULT_PORT_ALIASES:
-        pa_q = context.session.query(akmodels.PortAlias)
-        pa_q = pa_q.filter_by(
-            tenant_id=context.tenant_id,
-            port=port,
-            protocol=protocol,
-        )
-        try:
-            pa_q.one()
-        except exc.NoResultFound:
-            with context.session.begin(subtransactions=True):
-                alias = akmodels.PortAlias(
-                    name=name,
-                    protocol=protocol,
-                    port=port,
-                    tenant_id=context.tenant_id,
-                )
-                context.session.add(alias)
-                LOG.debug('Created default port alias %s', alias.name)
