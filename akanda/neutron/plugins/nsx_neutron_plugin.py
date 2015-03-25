@@ -265,6 +265,7 @@ class NsxPluginV2(floatingip.ExplicitFloatingIPAllocationMixin,
     _update_fip_assoc = l3_db.L3_NAT_db_mixin._update_fip_assoc
     _update_router_gw_info = l3_db.L3_NAT_db_mixin._update_router_gw_info
     disassociate_floatingips = l3_db.L3_NAT_db_mixin.disassociate_floatingips
+    get_sync_data = l3_db.L3_NAT_db_mixin.get_sync_data
 
     def _ensure_metadata_host_route(self, *args, **kwargs):
         """ Akanda metadata services are provided by router so make no-op/"""
