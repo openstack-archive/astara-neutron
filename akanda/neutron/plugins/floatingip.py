@@ -27,7 +27,7 @@ from oslo.config import cfg
 LOG = log.getLogger(__name__)
 
 explicit_floating_ip_opts = [
-    cfg.MultiStrOpt(
+    cfg.ListOpt(
         'floatingip_subnet',
         default=[],
         help='UUID(s) of subnet(s) from which floating IPs can be allocated',
