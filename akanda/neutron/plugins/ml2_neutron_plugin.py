@@ -15,6 +15,7 @@
 # under the License.
 
 import netaddr
+from neutron.common import constants as neutron_constants
 from neutron.db import l3_db
 from neutron.plugins.ml2 import plugin
 from neutron.services.l3_router import l3_router_plugin
@@ -31,10 +32,16 @@ class Ml2Plugin(floatingip.ExplicitFloatingIPAllocationMixin,
         ["dhrouterstatus"]
     )
 
-    try:
-        _supported_extension_aliases.remove('agent_scheduler')
-    except ValueError:
-        pass
+    disabled_extensions = [
+        neutron_constants.DHCP_AGENT_SCHEDULER_EXT_ALIAS,
+        neutron_constants.L3_AGENT_SCHEDULER_EXT_ALIAS,
+        neutron_constants.LBAAS_AGENT_SCHEDULER_EXT_ALIAS
+    ]
+    for ext in disabled_extensions:
+        try:
+            _supported_extension_aliases.remove(ext)
+        except ValueError:
+            pass
 
     @akanda.auto_add_ipv6_subnet
     def create_network(self, context, network):
