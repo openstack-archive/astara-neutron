@@ -15,6 +15,7 @@
 # under the License.
 
 import netaddr
+from neutron.common import constants as neutron_constants
 from neutron.db import l3_db
 from neutron.plugins.ml2 import plugin
 from neutron.services.l3_router import l3_router_plugin
@@ -32,7 +33,8 @@ class Ml2Plugin(floatingip.ExplicitFloatingIPAllocationMixin,
     )
 
     try:
-        _supported_extension_aliases.remove('agent_scheduler')
+        _supported_extension_aliases.remove(
+            neutron_constants.DHCP_AGENT_SCHEDULER_EXT_ALIAS)
     except ValueError:
         pass
 
