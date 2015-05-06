@@ -14,6 +14,8 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+import re
+
 import netaddr
 from neutron.db import l3_db
 from neutron.plugins.ml2 import plugin
@@ -21,6 +23,11 @@ from neutron.services.l3_router import l3_router_plugin
 
 from akanda.neutron.plugins import decorators as akanda
 from akanda.neutron.plugins import floatingip
+
+
+AKANDA_PORT_NAME_RE = re.compile(
+    '^AKANDA:(MGT|VRRP):[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$'
+)
 
 
 class Ml2Plugin(floatingip.ExplicitFloatingIPAllocationMixin,
@@ -69,6 +76,17 @@ class Ml2Plugin(floatingip.ExplicitFloatingIPAllocationMixin,
                 }
             ]
         return res
+
+    # TODO(markmcclain) add upstream ability to remove port-security
+    # workaround it for now by filtering out Akanda ports
+    def get_ports_from_devices(self, devices):
+        "this wrapper removes Akanda VRRP ports since they are router ports"
+
+        return (
+            port
+            for port in super(Ml2Plugin, self).get_ports_from_devices(devices)
+            if port and not AKANDA_PORT_NAME_RE.match(port['name'])
+        )
 
 
 class L3RouterPlugin(l3_router_plugin.L3RouterPlugin):
