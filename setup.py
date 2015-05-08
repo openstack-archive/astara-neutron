@@ -23,7 +23,7 @@ setup(
     version='0.1.4',
     description='OpenStack L3 User-Facing REST API for Neutron',
     author='Akanda',
-    url='http://github.com/stackforge/akanda',
+    url='http://github.com/stackforge/akanda-neutron',
     license='BSD',
     install_requires=[],
     namespace_packages=['akanda'],
