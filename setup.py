@@ -1,4 +1,5 @@
 # Copyright 2014 DreamHost, LLC
+# Copyright 2015 Akanda, Inc
 #
 # Author: DreamHost, LLC
 #
@@ -19,12 +20,13 @@ from setuptools import setup, find_packages
 
 
 setup(
-    name='akanda-neutron',
-    version='0.1.4',
-    description='OpenStack L3 User-Facing REST API for Neutron',
-    author='Akanda',
-    url='http://github.com/stackforge/akanda-neutron',
-    license='BSD',
+#    name='akanda-neutron',
+#    version='2015.1',
+#    description='OpenStack L3 User-Facing REST API for Neutron',
+#    author='OpenStack',
+#    author_email='openstack-dev@lists.openstack.org',
+#    url='http://github.com/stackforge/akanda-neutron',
+#    license='Apache2',
     install_requires=[],
     namespace_packages=['akanda'],
     packages=find_packages(exclude=['test', 'smoke']),
