@@ -1,4 +1,5 @@
 # Copyright 2014 DreamHost, LLC
+# Copyright 2015 Akanda, Inc
 #
 # Author: DreamHost, LLC
 #
@@ -15,19 +16,8 @@
 # under the License.
 
 
-from setuptools import setup, find_packages
+import setuptools
 
-
-setup(
-    name='akanda-neutron',
-    version='0.1.4',
-    description='OpenStack L3 User-Facing REST API for Neutron',
-    author='Akanda',
-    url='http://github.com/stackforge/akanda-neutron',
-    license='BSD',
-    install_requires=[],
-    namespace_packages=['akanda'],
-    packages=find_packages(exclude=['test', 'smoke']),
-    include_package_data=True,
-    zip_safe=False,
-)
+setuptools.setup(
+    setup_requires=['pbr'],
+    pbr=True)
