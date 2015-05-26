@@ -86,12 +86,12 @@ class Ml2Plugin(floatingip.ExplicitFloatingIPAllocationMixin,
 
     # TODO(markmcclain) add upstream ability to remove port-security
     # workaround it for now by filtering out Akanda ports
-    def get_ports_from_devices(self, devices):
+    def get_ports_from_devices(self, context, devices):
         "this wrapper removes Akanda VRRP ports since they are router ports"
-
+        ports = super(Ml2Plugin, self).get_ports_from_devices(context, devices)
         return (
             port
-            for port in super(Ml2Plugin, self).get_ports_from_devices(devices)
+            for port in ports
             if port and not AKANDA_PORT_NAME_RE.match(port['name'])
         )
 
