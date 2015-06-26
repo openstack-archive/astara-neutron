@@ -16,13 +16,13 @@
 
 import logging
 
-from oslo.config import cfg
+from oslo_config import cfg
+from oslo_utils import uuidutils
 
 from neutron.api.v2 import attributes
 from neutron.common import exceptions as q_exc
 from neutron.db.l3_db import DEVICE_OWNER_FLOATINGIP, FloatingIP
-from neutron.openstack.common import uuidutils
-
+from neutron.i18n import _
 
 LOG = logging.getLogger(__name__)
 

@@ -25,8 +25,9 @@ from neutron.common import rpc as n_rpc
 from neutron.common import topics
 from neutron.db import agents_db
 from neutron.db import l3_db
-from neutron.openstack.common import log as logging
+from oslo_log import log as logging
 from oslo.db import exception as db_exc
+from neutron.i18n import _
 from neutron.plugins.vmware.api_client import exception as api_exc
 from neutron.plugins.vmware.common import nsx_utils
 from neutron.plugins.vmware.common import sync as nsx_sync
