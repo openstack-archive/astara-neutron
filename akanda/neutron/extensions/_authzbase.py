@@ -178,17 +178,3 @@ def create_extension(delegate):
                                                  delegate.collection_name,
                                                  delegate.resource_name,
                                                  delegate.ATTRIBUTE_MAP))
-
-
-def register_quota(resource_name, config_key_name, default=-1):
-    """
-    """
-    quota_opt = cfg.IntOpt(config_key_name,
-                           default=default,
-                           help=('number of %s allowed per tenant, -1 for '
-                                 'unlimited' % resource_name))
-    cfg.CONF.register_opts([quota_opt], 'QUOTAS')
-
-    q_resource = quota_resource.CountableResource(
-        resource_name, quota_resource._count_resource, config_key_name)
-    resource_registry.register_resource(q_resource)
