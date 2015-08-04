@@ -53,9 +53,6 @@ class RouterstatusResource(_authzbase.ResourceDelegate):
         }
 
 
-_authzbase.register_quota('routerstatus', 'quota_routerstatus')
-
-
 class Routerstatus(object):
     """
     """

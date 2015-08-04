@@ -19,9 +19,6 @@ import abc
 from neutron.api.v2 import base
 from neutron.api.v2 import resource as api_resource
 from neutron.common import exceptions as q_exc
-from neutron.common.config import cfg
-from neutron.quota import resource as quota_resource
-from neutron.quota import resource_registry
 
 
 class ResourcePlugin(object):
@@ -178,17 +175,3 @@ def create_extension(delegate):
                                                  delegate.collection_name,
                                                  delegate.resource_name,
                                                  delegate.ATTRIBUTE_MAP))
-
-
-def register_quota(resource_name, config_key_name, default=-1):
-    """
-    """
-    quota_opt = cfg.IntOpt(config_key_name,
-                           default=default,
-                           help=('number of %s allowed per tenant, -1 for '
-                                 'unlimited' % resource_name))
-    cfg.CONF.register_opts([quota_opt], 'QUOTAS')
-
-    q_resource = quota_resource.CountableResource(
-        resource_name, quota_resource._count_resource, config_key_name)
-    resource_registry.register_resource(q_resource)
