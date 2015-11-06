@@ -1,5 +1,5 @@
 [gerrit]
 host=review.openstack.org
 port=29418
-project=openstack/akanda-neutron.git
+project=openstack/astara-neutron.git
 defaultbranch=stable/liberty
