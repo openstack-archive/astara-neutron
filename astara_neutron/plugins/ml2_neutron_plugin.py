@@ -22,8 +22,8 @@ from neutron.db import l3_db
 from neutron.plugins.ml2 import plugin
 from neutron.services.l3_router import l3_router_plugin
 
-from akanda.neutron.plugins import decorators as akanda
-from akanda.neutron.plugins import floatingip
+from astara_neutron.plugins import decorators as astara
+from astara_neutron.plugins import floatingip
 
 
 AKANDA_PORT_NAME_RE = re.compile(
@@ -50,15 +50,15 @@ class Ml2Plugin(floatingip.ExplicitFloatingIPAllocationMixin,
         except ValueError:
             pass
 
-    @akanda.auto_add_ipv6_subnet
+    @astara.auto_add_ipv6_subnet
     def create_network(self, context, network):
         return super(Ml2Plugin, self).create_network(context, network)
 
-    @akanda.auto_add_subnet_to_router
+    @astara.auto_add_subnet_to_router
     def create_subnet(self, context, subnet):
         return super(Ml2Plugin, self).create_subnet(context, subnet)
 
-    @akanda.sync_subnet_gateway_port
+    @astara.sync_subnet_gateway_port
     def update_subnet(self, context, id, subnet):
         return super(Ml2Plugin, self).update_subnet(
             context, id, subnet)

@@ -19,7 +19,7 @@ class LoadBalancerPluginv2(plugin.LoadBalancerPluginv2):
     """
     This is allows loadbalancer status to be updated from Akanda.
     To enable, add the full python path to this class to the service_plugin
-    list in neutron.conf  Ensure both the path to akanda/neutron/extensions
+    list in neutron.conf  Ensure both the path to astara_neutron/extensions
     has been added to api_extensions_path *as well as* the path to
     neutron-lbaas/neutron_lbaas/extensions.
     """

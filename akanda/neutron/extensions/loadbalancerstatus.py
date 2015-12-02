@@ -13,4 +13,4 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from akanda_neutron.extensions.loadbalancerstatus import *  # noqa
+from astara_neutron.extensions.loadbalancerstatus import *  # noqa
