@@ -34,20 +34,32 @@ from neutron.plugins.common import constants
 IPV6_ASSIGNMENT_ATTEMPTS = 1000
 LOG = logging.getLogger(__name__)
 
-akanda_opts = [
-    cfg.StrOpt('akanda_ipv6_tenant_range',
-               default='fdd6:a1fa:cfa8::/48',
-               help='IPv6 address prefix'),
-    cfg.IntOpt('akanda_ipv6_prefix_length',
-               default=64,
-               help='Default length of prefix to pre-assign'),
+astara_opts = [
+    cfg.StrOpt(
+        'astara_ipv6_tenant_range',
+        default='fdd6:a1fa:cfa8::/48',
+        help='IPv6 address prefix',
+        deprecated_opts=[
+            cfg.DeprecatedOpt('akanda_ipv6_tenant_range')
+        ]),
+    cfg.IntOpt(
+        'astara_ipv6_prefix_length',
+        default=64,
+        help='Default length of prefix to pre-assign',
+        deprecated_opts=[
+            cfg.DeprecatedOpt('akanda_ipv6_prefix_length')
+        ]),
     cfg.ListOpt(
-        'akanda_allowed_cidr_ranges',
+        'astara_allowed_cidr_ranges',
         default=['10.0.0.0/8', '172.16.0.0/12', '192.168.0.0/16', 'fc00::/7'],
-        help='List of allowed subnet cidrs for non-admin users')
+        help='List of allowed subnet cidrs for non-admin users',
+        deprecated_opts=[
+            cfg.DeprecatedOpt('akanda_allowed_cidr_ranges')
+
+        ])
 ]
 
-cfg.CONF.register_opts(akanda_opts)
+cfg.CONF.register_opts(astara_opts)
 
 SUPPORTED_EXTENSIONS = [
     'dhrouterstatus',
@@ -90,19 +102,19 @@ def sync_subnet_gateway_port(f):
 def check_subnet_cidr_meets_policy(context, subnet):
     if context.is_admin:
         return
-    elif getattr(context, '_akanda_auto_add', None):
+    elif getattr(context, '_astara_auto_add', None):
         return
 
     net = netaddr.IPNetwork(subnet['subnet']['cidr'])
 
-    for allowed_cidr in cfg.CONF.akanda_allowed_cidr_ranges:
+    for allowed_cidr in cfg.CONF.astara_allowed_cidr_ranges:
         if net in netaddr.IPNetwork(allowed_cidr):
             return
 
     else:
         reason = _('Cannot create a subnet that is not within the '
                    'allowed address ranges [%s].' %
-                   cfg.CONF.akanda_allowed_cidr_ranges)
+                   cfg.CONF.astara_allowed_cidr_ranges)
         raise q_exc.AdminRequired(reason=reason)
 
 
@@ -110,20 +122,20 @@ def get_special_ipv6_addrs(ips, mac_address):
     current_ips = set(ips)
     special_ips = set([_generate_ipv6_address('fe80::/64', mac_address)])
 
-    akanda_ipv6_cidr = netaddr.IPNetwork(cfg.CONF.akanda_ipv6_tenant_range)
+    astara_ipv6_cidr = netaddr.IPNetwork(cfg.CONF.astara_ipv6_tenant_range)
 
     for ip in current_ips:
-        if '/' not in ip and netaddr.IPAddress(ip) in akanda_ipv6_cidr:
+        if '/' not in ip and netaddr.IPAddress(ip) in astara_ipv6_cidr:
             # Calculate the cidr here because the caller does not have access
             # to request context, subnet or port_id.
             special_ips.add(
                 '%s/%s' % (
                     netaddr.IPAddress(
                         netaddr.IPNetwork(
-                            '%s/%d' % (ip, cfg.CONF.akanda_ipv6_prefix_length)
+                            '%s/%d' % (ip, cfg.CONF.astara_ipv6_prefix_length)
                         ).first
                     ),
-                    cfg.CONF.akanda_ipv6_prefix_length
+                    cfg.CONF.astara_ipv6_prefix_length
                 )
             )
     return special_ips - current_ips
@@ -244,8 +256,8 @@ def _add_ipv6_subnet(context, network):
 
     try:
         subnet_generator = _ipv6_subnet_generator(
-            cfg.CONF.akanda_ipv6_tenant_range,
-            cfg.CONF.akanda_ipv6_prefix_length)
+            cfg.CONF.astara_ipv6_tenant_range,
+            cfg.CONF.astara_ipv6_prefix_length)
     except:
         LOG.exception('Unable able to add tenant IPv6 subnet.')
         return
@@ -276,9 +288,9 @@ def _add_ipv6_subnet(context, network):
                 'host_routes': attributes.ATTR_NOT_SPECIFIED,
                 'allocation_pools': attributes.ATTR_NOT_SPECIFIED
             }
-            context._akanda_auto_add = True
+            context._astara_auto_add = True
             plugin.create_subnet(context, {'subnet': create_args})
-            del context._akanda_auto_add
+            del context._astara_auto_add
             break
     else:
         LOG.error('Unable to generate a unique tenant subnet cidr')

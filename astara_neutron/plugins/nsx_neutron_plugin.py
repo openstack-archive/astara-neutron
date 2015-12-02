@@ -36,13 +36,13 @@ from neutron.plugins.vmware.nsxlib import switch as switchlib
 from neutron.plugins.vmware.plugins import base
 from neutron.plugins.vmware.plugins.base import cfg as n_cfg
 
-from akanda.neutron.plugins import decorators as akanda
-from akanda.neutron.plugins import floatingip
+from astara_neutron.plugins import decorators as astara
+from astara_neutron.plugins import floatingip
 
 LOG = logging.getLogger("NeutronPlugin")
 
 
-def akanda_nvp_ipv6_port_security_wrapper(f):
+def astara_nvp_ipv6_port_security_wrapper(f):
     @functools.wraps(f)
     def wrapper(lport_obj, mac_address, fixed_ips, port_security_enabled,
                 security_profiles, queue_id, mac_learning_enabled,
@@ -61,7 +61,7 @@ def akanda_nvp_ipv6_port_security_wrapper(f):
             # TODO(mark): investigate moving away from this an wrapping
             # (create|update)_port
             # add link-local and subnet cidr for IPv6 temp addresses
-            special_ipv6_addrs = akanda.get_special_ipv6_addrs(
+            special_ipv6_addrs = astara.get_special_ipv6_addrs(
                 (p['ip_address'] for p in lport_obj['allowed_address_pairs']),
                 mac_address
             )
@@ -74,12 +74,12 @@ def akanda_nvp_ipv6_port_security_wrapper(f):
     return wrapper
 
 
-base.switchlib._configure_extensions = akanda_nvp_ipv6_port_security_wrapper(
+base.switchlib._configure_extensions = astara_nvp_ipv6_port_security_wrapper(
     base.switchlib._configure_extensions
 )
 
 
-class AkandaNsxSynchronizer(nsx_sync.NsxSynchronizer):
+class AstaraNsxSynchronizer(nsx_sync.NsxSynchronizer):
     """
     The NsxSynchronizer class in Neutron runs a synchronization thread to
     sync nvp objects with neutron objects. Since we don't use nvp's routers
@@ -135,7 +135,7 @@ class NsxPluginV2(floatingip.ExplicitFloatingIPAllocationMixin,
     """
     supported_extension_aliases = (
         base.NsxPluginV2.supported_extension_aliases +
-        akanda.SUPPORTED_EXTENSIONS
+        astara.SUPPORTED_EXTENSIONS
     )
 
     def __init__(self):
@@ -210,7 +210,7 @@ class NsxPluginV2(floatingip.ExplicitFloatingIPAllocationMixin,
         #     self.nsx_sync_opts.min_chunk_size,
         #     self.nsx_sync_opts.max_random_sync_delay)
 
-        self._synchronizer = AkandaNsxSynchronizer(
+        self._synchronizer = AstaraNsxSynchronizer(
             self, self.cluster,
             self.nsx_sync_opts.state_sync_interval,
             self.nsx_sync_opts.min_sync_req_delay,
@@ -241,11 +241,11 @@ class NsxPluginV2(floatingip.ExplicitFloatingIPAllocationMixin,
         self.handle_port_metadata_access_delegate = noop
         self.handle_metadata_access_delegate = noop
 
-    @akanda.auto_add_ipv6_subnet
+    @astara.auto_add_ipv6_subnet
     def create_network(self, context, network):
         return super(NsxPluginV2, self).create_network(context, network)
 
-    @akanda.auto_add_subnet_to_router
+    @astara.auto_add_subnet_to_router
     def create_subnet(self, context, subnet):
         return super(NsxPluginV2, self).create_subnet(context, subnet)
 
@@ -269,7 +269,7 @@ class NsxPluginV2(floatingip.ExplicitFloatingIPAllocationMixin,
     get_sync_data = l3_db.L3_NAT_db_mixin.get_sync_data
 
     def _ensure_metadata_host_route(self, *args, **kwargs):
-        """ Akanda metadata services are provided by router so make no-op/"""
+        """ Astara metadata services are provided by router so make no-op/"""
         pass
 
     def _nsx_create_port(self, context, port_data):
@@ -281,7 +281,7 @@ class NsxPluginV2(floatingip.ExplicitFloatingIPAllocationMixin,
         # the DB object and return success
 
         # NOTE(rods): Reporting mark's comment on havana version of this patch.
-        # Akanda does want ports for external networks so this method is
+        # Astara does want ports for external networks so this method is
         # basically same with external check removed and the auto plugging of
         # router ports
 
@@ -354,7 +354,7 @@ class NsxPluginV2(floatingip.ExplicitFloatingIPAllocationMixin,
         # unit tests.
 
         # NOTE(rods): reporting mark's comment on havana version of this patch.
-        # Akanda does want ports for external networks so this method is
+        # Astara does want ports for external networks so this method is
         # basically same with external check removed
 
         # ---------------------------------------------------------------------
