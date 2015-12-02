@@ -32,6 +32,9 @@ explicit_floating_ip_opts = [
         default=[],
         help='UUID(s) of subnet(s) from which floating IPs can be allocated',
         required=True,
+        deprecated_opts=[
+            cfg.DeprecatedOpt('floatingip_subnet', group='akanda')
+        ]
     ),
 ]
 
@@ -45,17 +48,17 @@ class ExplicitFloatingIPAllocationMixin(object):
     """
 
     def _allocate_floatingip_from_configured_subnets(self, context):
-        cfg.CONF.register_opts(explicit_floating_ip_opts, group='akanda')
+        cfg.CONF.register_opts(explicit_floating_ip_opts, group='astara')
         # NOTE(dhellmann): There may be a better way to do this, but
         # the "filter" argument to get_subnets() is not documented so
         # who knows.
         e_context = context.elevated()
         subnets = [
             self._get_subnet(e_context, unicode(s))
-            for s in cfg.CONF.akanda.floatingip_subnet
+            for s in cfg.CONF.astara.floatingip_subnet
         ]
         if not subnets:
-            LOG.error('config setting akanda.floatingip_subnet missing')
+            LOG.error('config setting astara.floatingip_subnet missing')
             raise q_exc.IpAddressGenerationFailure(net_id='UNKNOWN')
         # The base class method _generate_ip() handles the allocation
         # ranges and going from one subnet to the next when a network
