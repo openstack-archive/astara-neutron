@@ -13,4 +13,4 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
-from akanda_neutron.plugins.lbaas_neutron_plugin import *  # noqa
+from astara_neutron.plugins.lbaas_neutron_plugin import *  # noqa
