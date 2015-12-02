@@ -17,7 +17,7 @@
 from neutron.api import extensions
 
 from neutron.db.l3_db import Router
-from akanda.neutron.extensions import _authzbase
+from astara_neutron.extensions import _authzbase
 
 
 class RouterstatusResource(_authzbase.ResourceDelegate):

@@ -17,7 +17,7 @@
 from neutron.api import extensions
 
 from neutron_lbaas.db.loadbalancer import models
-from akanda.neutron.extensions import _authzbase
+from astara_neutron.extensions import _authzbase
 
 
 class LoadbalancerstatusResource(_authzbase.ResourceDelegate):
