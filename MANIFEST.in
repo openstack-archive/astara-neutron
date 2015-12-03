@@ -1,2 +1,3 @@
 recursive-include test *.py
 recursive-include smoke *.py
+global-exclude akanda/neutron
