@@ -27,7 +27,7 @@ from akanda.neutron.plugins import floatingip
 
 
 AKANDA_PORT_NAME_RE = re.compile(
-    '^AKANDA:(MGT|VRRP):[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$'
+    '^(ASTARA|AKANDA):(MGT|VRRP):[0-9a-f]{8}(-[0-9a-f]{4}){3}-[0-9a-f]{12}$'
 )
 
 
