@@ -1,0 +1,9 @@
+Verified+2: Jenkins
+Code-Review+2: Adam Gandelman <adamg@ubuntu.com>
+Workflow+1: Adam Gandelman <adamg@ubuntu.com>
+Code-Review+1: xu chao <xu.chao@99cloud.net>
+Submitted-by: Jenkins
+Submitted-at: Wed, 16 Dec 2015 01:54:35 +0000
+Reviewed-on: https://review.openstack.org/258087
+Project: openstack/astara-neutron
+Branch: refs/heads/master
