@@ -56,7 +56,12 @@ astara_opts = [
         deprecated_opts=[
             cfg.DeprecatedOpt('akanda_allowed_cidr_ranges')
 
-        ])
+        ]),
+    cfg.BoolOpt(
+        'astara_auto_add_resources',
+        default=True,
+        help='Attempt to auto add resources to speed up network construction'
+    )
 ]
 
 cfg.CONF.register_opts(astara_opts)
@@ -71,7 +76,8 @@ def auto_add_ipv6_subnet(f):
     def wrapper(self, context, network):
         LOG.debug('auto_add_ipv6_subnet')
         net = f(self, context, network)
-        _add_ipv6_subnet(context, net)
+        if cfg.CONF.astara_auto_add_resources:
+            _add_ipv6_subnet(context, net)
         return net
     return wrapper
 
@@ -82,7 +88,8 @@ def auto_add_subnet_to_router(f):
         LOG.debug('auto_add_subnet_to_router')
         check_subnet_cidr_meets_policy(context, subnet)
         subnet = f(self, context, subnet)
-        _add_subnet_to_router(context, subnet)
+        if cfg.CONF.astara_auto_add_resources:
+            _add_subnet_to_router(context, subnet)
         return subnet
     return wrapper
 
