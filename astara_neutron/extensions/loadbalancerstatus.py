@@ -62,31 +62,31 @@ class LoadbalancerstatusResource(_authzbase.ResourceDelegate):
         }
 
 
-class Loadbalancerstatus(object):
+class Loadbalancerstatus(extensions.ExtensionDescriptor):
     """
     """
-    def get_name(self):
+    @classmethod
+    def get_name(cls):
         return "loadbalancerstatus"
 
-    def get_alias(self):
+    @classmethod
+    def get_alias(cls):
         return "akloadbalancerstatus"
 
-    def get_description(self):
+    @classmethod
+    def get_description(cls):
         return "A loadbalancer-status extension"
 
-    def get_namespace(self):
+    @classmethod
+    def get_namespace(cls):
         return 'http://docs.dreamcompute.com/api/ext/v1.0'
 
-    def get_updated(self):
+    @classmethod
+    def get_updated(cls):
         return "2015-10-09T09:14:43-05:00"
 
-    def get_resources(self):
+    @classmethod
+    def get_resources(cls):
         return [extensions.ResourceExtension(
             'akloadbalancerstatus',
             _authzbase.create_extension(LoadbalancerstatusResource()))]
-
-    def get_actions(self):
-        return []
-
-    def get_request_extensions(self):
-        return []

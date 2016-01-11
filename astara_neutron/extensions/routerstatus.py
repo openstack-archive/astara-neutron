@@ -53,31 +53,31 @@ class RouterstatusResource(_authzbase.ResourceDelegate):
         }
 
 
-class Routerstatus(object):
+class Routerstatus(extensions.ExtensionDescriptor):
     """
     """
-    def get_name(self):
+    @classmethod
+    def get_name(cls):
         return "routerstatus"
 
-    def get_alias(self):
+    @classmethod
+    def get_alias(cls):
         return "dhrouterstatus"
 
-    def get_description(self):
+    @classmethod
+    def get_description(cls):
         return "A router-status extension"
 
-    def get_namespace(self):
+    @classmethod
+    def get_namespace(cls):
         return 'http://docs.dreamcompute.com/api/ext/v1.0'
 
-    def get_updated(self):
+    @classmethod
+    def get_updated(cls):
         return "2014-06-04T09:14:43-05:00"
 
-    def get_resources(self):
+    @classmethod
+    def get_resources(cls):
         return [extensions.ResourceExtension(
             'dhrouterstatus',
             _authzbase.create_extension(RouterstatusResource()))]
-
-    def get_actions(self):
-        return []
-
-    def get_request_extensions(self):
-        return []
