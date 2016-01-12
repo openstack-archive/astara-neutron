@@ -1,0 +1,3 @@
+---
+fixes:
+  - Bug `266586 <https://bugs.launchpad.net/astara/+bug/266586>`_ \- Always allow DHCP traffic through security groups from router to tenant VMs on the same subnet
