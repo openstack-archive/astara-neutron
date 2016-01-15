@@ -23,7 +23,6 @@ from neutron.plugins.ml2 import plugin
 from neutron.services.l3_router import l3_router_plugin
 
 from astara_neutron.plugins import decorators as astara
-from astara_neutron.plugins import floatingip
 
 
 AKANDA_PORT_NAME_RE = re.compile(
@@ -31,8 +30,7 @@ AKANDA_PORT_NAME_RE = re.compile(
 )
 
 
-class Ml2Plugin(floatingip.ExplicitFloatingIPAllocationMixin,
-                plugin.Ml2Plugin):
+class Ml2Plugin(plugin.Ml2Plugin):
 
     _supported_extension_aliases = (
         plugin.Ml2Plugin._supported_extension_aliases +
