@@ -1,7 +1,7 @@
-# Akanda Neutron
+# Astara Neutron
 
-*Part of the [Akanda Project](https://github.com/dreamhost/akanda).*
+*Part of the [Astara Project](https://github.com/dreamhost/akanda).*
 
 Addon API extensions for OpenStack Neutron which enable functionality and integration
-with the Akanda project, notably Akanda router appliance interaction, and
-services for the Akanda RUG orchestration service.
+with the Astara project, notably Astara router appliance interaction, and
+services for the Astara RUG orchestration service.
