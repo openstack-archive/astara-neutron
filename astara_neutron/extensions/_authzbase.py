@@ -57,7 +57,7 @@ class ResourcePlugin(object):
     def _model_query(self, context):
         query = context.session.query(self.delegate.model)
 
-    # NOTE(jkoelker) non-admin queries are scoped to their tenant_id
+        # NOTE(jkoelker) non-admin queries are scoped to their tenant_id
         if not context.is_admin and hasattr(self.delegate.model, 'tenant_id'):
             query = query.filter(
                 self.delegate.model.tenant_id == context.tenant_id)
