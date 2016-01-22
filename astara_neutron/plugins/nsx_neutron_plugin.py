@@ -37,7 +37,6 @@ from neutron.plugins.vmware.plugins import base
 from neutron.plugins.vmware.plugins.base import cfg as n_cfg
 
 from astara_neutron.plugins import decorators as astara
-from astara_neutron.plugins import floatingip
 
 LOG = logging.getLogger("NeutronPlugin")
 
@@ -127,8 +126,7 @@ class AstaraNsxSynchronizer(nsx_sync.NsxSynchronizer):
         pass
 
 
-class NsxPluginV2(floatingip.ExplicitFloatingIPAllocationMixin,
-                  base.NsxPluginV2):
+class NsxPluginV2(base.NsxPluginV2):
     """
     NsxPluginV2 is a Neutron plugin that provides L2 Virtual Network
     functionality using NSX.
