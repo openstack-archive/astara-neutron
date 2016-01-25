@@ -19,6 +19,7 @@ import re
 import netaddr
 from neutron.common import constants as neutron_constants
 from neutron.db import l3_db
+from neutron.db import models_v2
 from neutron.plugins.ml2 import plugin
 from neutron.services.l3_router import l3_router_plugin
 
@@ -83,6 +84,32 @@ class Ml2Plugin(floatingip.ExplicitFloatingIPAllocationMixin,
                 }
             ]
         return res
+
+    def _select_dhcp_ips_for_network_ids(self, context, network_ids):
+        ips = super(Ml2Plugin, self)._select_dhcp_ips_for_network_ids(
+            context,
+            network_ids
+        )
+
+        # allow DHCP replies from router interfaces since they're combined in
+        # Astara appliances. Minimal impact if another appliance is used.
+        query = context.session.query(models_v2.Port.mac_address,
+                                      models_v2.Port.network_id,
+                                      models_v2.IPAllocation.ip_address)
+        query = query.join(models_v2.IPAllocation)
+        query = query.filter(models_v2.Port.network_id.in_(network_ids))
+        owner = neutron_constants.DEVICE_OWNER_ROUTER_INTF
+        query = query.filter(models_v2.Port.device_owner == owner)
+
+        for mac_address, network_id, ip in query:
+            if (netaddr.IPAddress(ip).version == 6
+                and not netaddr.IPAddress(ip).is_link_local()):
+
+                ip = str(netaddr.EUI(mac_address).ipv6_link_local())
+            if ip not in ips[network_id]:
+                ips[network_id].append(ip)
+
+        return ips
 
     # TODO(markmcclain) add upstream ability to remove port-security
     # workaround it for now by filtering out Akanda ports
