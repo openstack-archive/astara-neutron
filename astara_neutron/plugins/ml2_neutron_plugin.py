@@ -100,8 +100,8 @@ class Ml2Plugin(plugin.Ml2Plugin):
         query = query.filter(models_v2.Port.device_owner == owner)
 
         for mac_address, network_id, ip in query:
-            if (netaddr.IPAddress(ip).version == 6
-                and not netaddr.IPAddress(ip).is_link_local()):
+            if (netaddr.IPAddress(ip).version == 6 and not
+               netaddr.IPAddress(ip).is_link_local()):
 
                 ip = str(netaddr.EUI(mac_address).ipv6_link_local())
             if ip not in ips[network_id]:
