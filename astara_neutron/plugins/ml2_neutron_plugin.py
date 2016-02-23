@@ -17,8 +17,11 @@
 import re
 
 import netaddr
+from oslo_config import cfg
+
+from neutron.api.v2 import attributes
 from neutron.common import constants as neutron_constants
-from neutron.db import l3_db
+from neutron.db import l3_db, l3_hamode_db
 from neutron.db import models_v2
 from neutron.plugins.ml2 import plugin
 from neutron.services.l3_router import l3_router_plugin
@@ -131,6 +134,10 @@ class L3RouterPlugin(l3_router_plugin.L3RouterPlugin):
     add_router_interface = l3_db.L3_NAT_db_mixin.add_router_interface
     remove_router_interface = l3_db.L3_NAT_db_mixin.remove_router_interface
 
+    # call this directly instead of through class hierarchy, to avoid
+    # the l3_hamode_db from doing agent-based HA setup and checks
+    _create_router = l3_db.L3_NAT_dbonly_mixin.create_router
+
     def list_routers_on_l3_agent(self, context, agent_id):
         return {
             'routers': self.get_routers(context),
@@ -151,3 +158,14 @@ class L3RouterPlugin(l3_router_plugin.L3RouterPlugin):
                 active=True,
             )
         return []
+
+    @classmethod
+    def _is_ha(cls, router):
+        ha = router.get('ha')
+        if not attributes.is_attr_set(ha):
+            ha = cfg.CONF.l3_ha
+        return ha
+
+    def create_router(self, context, router):
+        router['router']['ha'] = self._is_ha(router['router'])
+        return self._create_router(context, router)
