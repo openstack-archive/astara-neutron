@@ -68,6 +68,7 @@ cfg.CONF.register_opts(astara_opts)
 
 SUPPORTED_EXTENSIONS = [
     'dhrouterstatus',
+    'byonf'
 ]
 
 
