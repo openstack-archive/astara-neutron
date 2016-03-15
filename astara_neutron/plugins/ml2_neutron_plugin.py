@@ -35,7 +35,7 @@ class Ml2Plugin(plugin.Ml2Plugin):
 
     _supported_extension_aliases = (
         plugin.Ml2Plugin._supported_extension_aliases +
-        ["dhrouterstatus"]
+        ["dhrouterstatus", "byonf"]
     )
 
     disabled_extensions = [
