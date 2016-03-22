@@ -6,3 +6,4 @@ astara-neutron Release Notes
    :maxdepth: 1
 
    mitaka
+    mitaka
