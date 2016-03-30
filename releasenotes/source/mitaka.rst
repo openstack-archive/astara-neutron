@@ -1,5 +1,5 @@
 ==========================================================
- astara-neutron mitaka Series Release Notes (UNRELEASED)
+ astara-neutron mitaka Series Release Notes
 ==========================================================
 
 .. release-notes::
