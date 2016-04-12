@@ -17,7 +17,12 @@
 from neutron.api import extensions
 
 from neutron.db.l3_db import Router
+from neutron.db import models_v2
 from astara_neutron.extensions import _authzbase
+
+
+STATUS_ACTIVE = 'ACTIVE'
+STATUS_DOWN = 'DOWN'
 
 
 class RouterstatusResource(_authzbase.ResourceDelegate):
@@ -51,6 +56,45 @@ class RouterstatusResource(_authzbase.ResourceDelegate):
             'tenant_id': router['tenant_id'],
             'status': router['status']
         }
+
+    def update(self, context, resource, resource_dict):
+        with context.session.begin(subtransactions=True):
+            resource.update(resource_dict)
+            context.session.add(resource)
+
+            # sync logical ports to backing port status
+            for router_port in resource.attached_ports:
+                if router_port.port.status != resource.status:
+                    self._update_port_status(
+                        context,
+                        resource,
+                        router_port.port
+                    )
+                    context.session.add(router_port.port)
+            return self.make_dict(resource)
+
+    def _update_port_status(self, context, router, port):
+        # assume port is down until proven otherwise
+        next_status = STATUS_DOWN
+
+        # find backing ports works with both  ASTARA and AKANDA
+        partial_name = 'A%%:VRRP:%s' % router.id
+
+        query = context.session.query(models_v2.Port)
+        query = query.filter(
+            models_v2.Port.network_id == port.network_id,
+            models_v2.Port.name.like(partial_name)
+        )
+
+        for backing_port in query.all():
+            if not backing_port.device_owner or not backing_port.device_id:
+                continue
+
+            next_status = backing_port.status
+            if next_status != STATUS_ACTIVE:
+                break
+
+        port.status = next_status
 
 
 class Routerstatus(extensions.ExtensionDescriptor):
