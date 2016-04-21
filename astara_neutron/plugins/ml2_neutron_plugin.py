@@ -43,7 +43,6 @@ class Ml2Plugin(plugin.Ml2Plugin):
 
     disabled_extensions = [
         neutron_constants.DHCP_AGENT_SCHEDULER_EXT_ALIAS,
-        neutron_constants.L3_AGENT_SCHEDULER_EXT_ALIAS,
         neutron_constants.LBAAS_AGENT_SCHEDULER_EXT_ALIAS
     ]
     for ext in disabled_extensions:
@@ -169,3 +168,5 @@ class L3RouterPlugin(l3_router_plugin.L3RouterPlugin):
     def create_router(self, context, router):
         router['router']['ha'] = self._is_ha(router['router'])
         return self._create_router(context, router)
+
+L3RouterPlugin.supported_extension_aliases.remove(neutron_constants.L3_AGENT_SCHEDULER_EXT_ALIAS)
