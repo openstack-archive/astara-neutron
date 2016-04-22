@@ -42,7 +42,6 @@ class Ml2Plugin(floatingip.ExplicitFloatingIPAllocationMixin,
 
     disabled_extensions = [
         neutron_constants.DHCP_AGENT_SCHEDULER_EXT_ALIAS,
-        neutron_constants.L3_AGENT_SCHEDULER_EXT_ALIAS,
         neutron_constants.LBAAS_AGENT_SCHEDULER_EXT_ALIAS
     ]
     for ext in disabled_extensions:
@@ -153,3 +152,9 @@ class L3RouterPlugin(l3_router_plugin.L3RouterPlugin):
                 active=True,
             )
         return []
+
+if neutron_constants.L3_AGENT_SCHEDULER_EXT_ALIAS in \
+        L3RouterPlugin.supported_extension_aliases:
+    L3RouterPlugin.supported_extension_aliases.remove(
+        neutron_constants.L3_AGENT_SCHEDULER_EXT_ALIAS
+    )
