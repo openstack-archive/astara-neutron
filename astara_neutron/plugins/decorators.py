@@ -25,7 +25,7 @@ from neutron.common.config import cfg
 from neutron.common import exceptions as q_exc
 from neutron.db import models_v2 as qmodels
 from neutron.db import l3_db
-from neutron.i18n import _
+from neutron._i18n import _
 from neutron import manager
 
 from neutron.plugins.common import constants
