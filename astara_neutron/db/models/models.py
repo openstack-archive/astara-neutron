@@ -12,12 +12,11 @@
 # License for the specific language governing permissions and limitations
 # under the License.
 
+from neutron_lib.db import model_base
 import sqlalchemy as sa
 
-from neutron.db import model_base, models_v2
 
-
-class Byonf(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
+class Byonf(model_base.BASEV2, model_base.HasId, model_base.HasProject):
     __tablename__ = 'astara_byonf'
     function_type = sa.Column(sa.String(length=255), nullable=False)
     driver = sa.Column(sa.String(length=36), nullable=False)
