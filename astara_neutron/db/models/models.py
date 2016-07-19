@@ -13,8 +13,33 @@
 # under the License.
 
 import sqlalchemy as sa
+from sqlalchemy.ext import declarative
 
+from neutron.api.v2 import attributes as attr
 from neutron.db import model_base, models_v2
+
+
+class HasProject(object):
+    # NOTE(dasm): Temporary solution!
+    # Remove when I87a8ef342ccea004731ba0192b23a8e79bc382dc is merged.
+
+    project_id = sa.Column(sa.String(attr.TENANT_ID_MAX_LEN), index=True)
+
+    def __init__(self, *args, **kwargs):
+        # NOTE(dasm): debtcollector requires init in class
+        super(HasProject, self).__init__(*args, **kwargs)
+
+    def get_tenant_id(self):
+        return self.project_id
+
+    def set_tenant_id(self, value):
+        self.project_id = value
+
+    @declarative.declared_attr
+    def tenant_id(cls):
+        return orm.synonym(
+            'project_id',
+            descriptor=property(cls.get_tenant_id, cls.set_tenant_id))
 
 
 class Byonf(model_base.BASEV2, models_v2.HasId, models_v2.HasTenant):
