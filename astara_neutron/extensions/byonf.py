@@ -80,7 +80,7 @@ class ByonfResource(_authzbase.ResourceDelegate):
         Convert a Byo model object to a dictionary.
         """
         return {
-            'tenant_id': byo['tenant_id'],
+            'tenant_id': byo['project_id'],
             'image_uuid': byo['image_uuid'],
             'function_type': byo['function_type'],
             'driver': byo['driver'],
