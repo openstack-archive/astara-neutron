@@ -32,7 +32,7 @@ class ByonfResource(_authzbase.ResourceDelegate):
     collection_name = 'byonfs'
 
     ATTRIBUTE_MAP = {
-        'tenant_id': {
+        'project_id': {
             'allow_post': True,
             'allow_put': True,
             'is_visible': True,
@@ -73,14 +73,14 @@ class ByonfResource(_authzbase.ResourceDelegate):
         except db_exc.DBDuplicateEntry:
             raise webob.exc.HTTPConflict(
                 'Tenant %s already has driver associatation for function: %s' %
-                (resource_dict['tenant_id'], resource_dict['function_type']))
+                (resource_dict['project_id'], resource_dict['function_type']))
 
     def make_dict(self, byo):
         """
         Convert a Byo model object to a dictionary.
         """
         return {
-            'tenant_id': byo['tenant_id'],
+            'project_id': byo['project_id'],
             'image_uuid': byo['image_uuid'],
             'function_type': byo['function_type'],
             'driver': byo['driver'],
