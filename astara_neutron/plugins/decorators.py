@@ -28,7 +28,7 @@ from neutron.db import l3_db
 from neutron._i18n import _
 from neutron import manager
 
-from neutron.plugins.common import constants
+from neutron_lib import constants
 
 
 IPV6_ASSIGNMENT_ATTEMPTS = 1000
@@ -159,7 +159,7 @@ def _add_subnet_to_router(context, subnet):
         return
 
     service_plugin = manager.NeutronManager.get_service_plugins().get(
-        constants.L3_ROUTER_NAT)
+        constants.L3)
 
     router_q = context.session.query(l3_db.Router)
     router_q = router_q.filter_by(tenant_id=context.tenant_id)
@@ -215,7 +215,7 @@ def _update_internal_gateway_port_ip(context, router_id, subnet):
 
     plugin = manager.NeutronManager.get_plugin()
     service_plugin = manager.NeutronManager.get_service_plugins().get(
-        constants.L3_ROUTER_NAT)
+        constants.L3)
 
     for index, ip in enumerate(fixed_ips):
         if ip['subnet_id'] == subnet['id']:
