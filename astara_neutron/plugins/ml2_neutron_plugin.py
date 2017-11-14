@@ -169,6 +169,7 @@ class L3RouterPlugin(l3_router_plugin.L3RouterPlugin):
         router['router']['ha'] = self._is_ha(router['router'])
         return self._create_router(context, router)
 
+
 if neutron_constants.L3_AGENT_SCHEDULER_EXT_ALIAS in \
         L3RouterPlugin.supported_extension_aliases:
     L3RouterPlugin.supported_extension_aliases.remove(
